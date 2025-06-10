@@ -1,0 +1,18 @@
+# Git
+.git
+.gitignore
+
+# Development artifacts
+.env
+.env.*
+!.env.example
+*.test
+*.out
+
+# Editor files
+.vscode/
+.idea/
+
+# Build artifacts
+bin/
+tmp/
