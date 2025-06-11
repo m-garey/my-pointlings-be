@@ -26,7 +26,7 @@ type UpdateNicknameRequest struct {
 }
 
 type PointlingListResponse struct {
-	Pointlings []Pointling `json:"pointlings"`
+	Pointlings []*Pointling `json:"pointlings"`
 }
 
 func NewPointling(userID int64, nickname *string) *Pointling {
