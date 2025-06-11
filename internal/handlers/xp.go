@@ -1,33 +1,33 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"my-pointlings-be/internal/models"
+	"my-pointlings-be/internal/repository"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 type XPHandler struct {
-	xpRepo        models.XPRepository
-	pointlingRepo models.PointlingRepository
+	repo repository.API
 }
 
-func NewXPHandler(xpRepo models.XPRepository, pointlingRepo models.PointlingRepository) *XPHandler {
+func NewXPHandler(repo repository.API) *XPHandler {
 	return &XPHandler{
-		xpRepo:        xpRepo,
-		pointlingRepo: pointlingRepo,
+		repo: repo,
 	}
 }
 
-func (h *XPHandler) RegisterRoutes(r chi.Router) {
-	r.Route("/api/v1/pointlings/{pointlingID}", func(r chi.Router) {
-		r.Post("/xp", h.addXP)
-		r.Get("/xp/history", h.getXPHistory)
-	})
+// Routes sets up all the XP-related routes
+func (h *XPHandler) Routes(rg *gin.RouterGroup) {
+	pointlings := rg.Group("/pointlings/:pointling_id")
+	{
+		pointlings.POST("/xp", h.AddXP)
+		pointlings.GET("/xp/history", h.GetXPHistory)
+	}
 }
 
 type addXPRequest struct {
@@ -45,37 +45,37 @@ type addXPResponse struct {
 	Event       *models.XPEvent `json:"event"`
 }
 
-func (h *XPHandler) addXP(w http.ResponseWriter, r *http.Request) {
-	pointlingID, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *XPHandler) AddXP(c *gin.Context) {
+	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
 	var req addXPRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if !req.Source.ValidateSource() {
-		respondError(w, http.StatusBadRequest, "Invalid XP source")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid XP source"})
 		return
 	}
 
 	if req.Amount <= 0 || req.Amount > req.Source.GetXPPerAction() {
-		respondError(w, http.StatusBadRequest, fmt.Sprintf("Invalid XP amount, max is %d", req.Source.GetXPPerAction()))
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid XP amount, max is %d", req.Source.GetXPPerAction())})
 		return
 	}
 
 	// Get current pointling state
-	pointling, err := h.pointlingRepo.GetByID(pointlingID)
+	pointling, err := h.repo.GetPointlingByID(pointlingID)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to get pointling")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get pointling"})
 		return
 	}
 	if pointling == nil {
-		respondError(w, http.StatusNotFound, "Pointling not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pointling not found"})
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *XPHandler) addXP(w http.ResponseWriter, r *http.Request) {
 
 	// Process XP gain in transaction
 	var resp addXPResponse
-	err = h.xpRepo.InTransaction(func(txRepo models.XPRepository) error {
+	err = h.repo.InTransaction(func(txRepo *repository.PointlingRepository) error {
 		// Add XP event
 		if err := txRepo.AddXP(event); err != nil {
 			if err == models.ErrDailyXPLimitReached {
@@ -111,19 +111,19 @@ func (h *XPHandler) addXP(w http.ResponseWriter, r *http.Request) {
 
 			// Update level and calculate new XP requirement
 			newRequired := models.CalculateNextLevelXP(pointling.Level)
-			if err := h.pointlingRepo.UpdateLevel(pointlingID, pointling.Level); err != nil {
+			if err := h.repo.UpdatePointlingLevel(pointlingID, pointling.Level); err != nil {
 				return fmt.Errorf("update level: %w", err)
 			}
 			resp.RequiredXP = newRequired
 
 			// Update XP with new requirement
-			if err := h.pointlingRepo.UpdateXP(pointlingID, resp.NewTotal, newRequired); err != nil {
+			if err := h.repo.UpdatePointlingXP(pointlingID, resp.NewTotal, newRequired); err != nil {
 				return fmt.Errorf("update xp: %w", err)
 			}
 		} else {
 			// Update XP without level up
 			resp.RequiredXP = pointling.RequiredXP
-			if err := h.pointlingRepo.UpdateXP(pointlingID, resp.NewTotal, pointling.RequiredXP); err != nil {
+			if err := h.repo.UpdatePointlingXP(pointlingID, resp.NewTotal, pointling.RequiredXP); err != nil {
 				return fmt.Errorf("update xp: %w", err)
 			}
 		}
@@ -133,35 +133,35 @@ func (h *XPHandler) addXP(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == models.ErrDailyXPLimitReached {
-			respondError(w, http.StatusTooManyRequests, "Daily XP limit reached for this source")
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Daily XP limit reached for this source"})
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "Failed to process XP gain")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process XP gain"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
-func (h *XPHandler) getXPHistory(w http.ResponseWriter, r *http.Request) {
-	pointlingID, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *XPHandler) GetXPHistory(c *gin.Context) {
+	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
 	limit := 50 // Default limit
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+	if limitStr := c.Query("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
 			limit = l
 		}
 	}
 
-	events, err := h.xpRepo.GetEventsByPointling(pointlingID, limit)
+	events, err := h.repo.GetEventsByPointling(pointlingID, limit)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to get XP history")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get XP history"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, events)
+	c.JSON(http.StatusOK, events)
 }

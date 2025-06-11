@@ -27,9 +27,3 @@ func RespondJSON(w http.ResponseWriter, status int, data interface{}) {
 func RespondError(w http.ResponseWriter, status int, message string) {
 	RespondJSON(w, status, ErrorResponse{Error: message})
 }
-
-// For backward compatibility, keep the unexported versions
-var (
-	respondJSON  = RespondJSON
-	respondError = RespondError
-)

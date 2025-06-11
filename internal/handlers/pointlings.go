@@ -1,32 +1,34 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"my-pointlings-be/internal/models"
+	"my-pointlings-be/internal/repository"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 type PointlingHandler struct {
-	repo models.PointlingRepository
+	repo repository.API
 }
 
-func NewPointlingHandler(repo models.PointlingRepository) *PointlingHandler {
+func NewPointlingHandler(repo repository.API) *PointlingHandler {
 	return &PointlingHandler{repo: repo}
 }
 
 // RegisterRoutes adds the pointling endpoints to the provided router
-func (h *PointlingHandler) RegisterRoutes(r chi.Router) {
-	r.Route("/api/v1/pointlings", func(r chi.Router) {
-		r.Post("/", h.createPointling)
-		r.Get("/{pointlingID}", h.getPointling)
-		r.Patch("/{pointlingID}/nickname", h.updateNickname)
-		r.Get("/user/{userID}", h.listUserPointlings)
-	})
+// Routes sets up all the pointling routes
+func (h *PointlingHandler) Routes(rg *gin.RouterGroup) {
+	pointlings := rg.Group("/pointlings")
+	{
+		pointlings.POST("/", h.CreatePointling)
+		pointlings.GET("/:pointling_id", h.GetPointling)
+		pointlings.PATCH("/:pointling_id/nickname", h.UpdateNickname)
+		pointlings.GET("/user/:user_id", h.ListUserPointlings)
+	}
 }
 
 type createPointlingRequest struct {
@@ -34,89 +36,89 @@ type createPointlingRequest struct {
 	Nickname *string `json:"nickname,omitempty"`
 }
 
-func (h *PointlingHandler) createPointling(w http.ResponseWriter, r *http.Request) {
+func (h *PointlingHandler) CreatePointling(c *gin.Context) {
 	var req createPointlingRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if req.UserID == 0 {
-		respondError(w, http.StatusBadRequest, "user_id is required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
 		return
 	}
 
 	pointling := models.NewPointling(req.UserID, req.Nickname)
 
-	if err := h.repo.Create(pointling); err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to create pointling")
+	if err := h.repo.CreatePointling(pointling); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create pointling"})
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, pointling)
+	c.JSON(http.StatusCreated, pointling)
 }
 
-func (h *PointlingHandler) getPointling(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *PointlingHandler) GetPointling(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
-	pointling, err := h.repo.GetByID(id)
+	pointling, err := h.repo.GetPointlingByID(id)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to get pointling")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get pointling"})
 		return
 	}
 	if pointling == nil {
-		respondError(w, http.StatusNotFound, "Pointling not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pointling not found"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, pointling)
+	c.JSON(http.StatusOK, pointling)
 }
 
 type updateNicknameRequest struct {
 	Nickname *string `json:"nickname"`
 }
 
-func (h *PointlingHandler) updateNickname(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *PointlingHandler) UpdateNickname(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
 	var req updateNicknameRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	if err := h.repo.UpdateNickname(id, req.Nickname); err != nil {
+	if err := h.repo.UpdatePointlingNickname(id, req.Nickname); err != nil {
 		if strings.Contains(err.Error(), "pointling not found") {
-			respondError(w, http.StatusNotFound, "Pointling not found")
+			c.JSON(http.StatusNotFound, gin.H{"error": "Pointling not found"})
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "Failed to update nickname")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update nickname"})
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
-func (h *PointlingHandler) listUserPointlings(w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+func (h *PointlingHandler) ListUserPointlings(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	pointlings, err := h.repo.GetByUserID(userID)
+	pointlings, err := h.repo.GetPointlingByUserID(userID)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to list pointlings")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list pointlings"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, pointlings)
+	c.JSON(http.StatusOK, pointlings)
 }

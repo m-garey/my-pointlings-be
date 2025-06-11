@@ -1,110 +1,105 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"my-pointlings-be/internal/models"
+	"my-pointlings-be/internal/repository"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 type ItemHandler struct {
-	itemRepo          models.ItemRepository
-	pointlingRepo     models.PointlingRepository
-	pointlingItemRepo models.PointlingItemRepository
+	repo repository.API
 }
 
 func NewItemHandler(
-	itemRepo models.ItemRepository,
-	pointlingRepo models.PointlingRepository,
-	pointlingItemRepo models.PointlingItemRepository,
+	repo repository.API,
 ) *ItemHandler {
 	return &ItemHandler{
-		itemRepo:          itemRepo,
-		pointlingRepo:     pointlingRepo,
-		pointlingItemRepo: pointlingItemRepo,
+		repo: repo,
 	}
 }
 
-func (h *ItemHandler) RegisterRoutes(r chi.Router) {
-	r.Route("/api/v1", func(r chi.Router) {
-		// Item catalog endpoints
-		r.Route("/items", func(r chi.Router) {
-			r.Get("/", h.listItems)       // Get available items
-			r.Get("/{itemID}", h.getItem) // Get item details
-			r.Post("/", h.createItem)     // Admin only
-		})
+// Routes sets up all the item-related routes
+func (h *ItemHandler) Routes(rg *gin.RouterGroup) {
+	// Item catalog endpoints
+	items := rg.Group("/items")
+	{
+		items.GET("/", h.ListItems)       // Get available items
+		items.GET("/:item_id", h.GetItem) // Get item details
+		items.POST("/", h.CreateItem)     // Admin only
+	}
 
-		// Pointling inventory endpoints
-		r.Route("/pointlings/{pointlingID}/items", func(r chi.Router) {
-			r.Get("/", h.getInventory)                   // List owned items
-			r.Post("/{itemID}", h.acquireItem)           // Buy/unlock item
-			r.Patch("/{itemID}/equip", h.toggleEquipped) // Equip/unequip item
-		})
-	})
+	// Pointling inventory endpoints
+	inventory := rg.Group("/pointlings/:pointling_id/items")
+	{
+		inventory.GET("/", h.GetInventory)                   // List owned items
+		inventory.POST("/:item_id", h.AcquireItem)           // Buy/unlock item
+		inventory.PATCH("/:item_id/equip", h.ToggleEquipped) // Equip/unequip item
+	}
 }
 
-func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
+func (h *ItemHandler) ListItems(c *gin.Context) {
 	var category *models.ItemCategory
 	var rarity *models.ItemRarity
 	var slot *models.ItemSlot
 
-	if cat := r.URL.Query().Get("category"); cat != "" {
-		c := models.ItemCategory(cat)
-		if !c.ValidateCategory() {
-			RespondError(w, http.StatusBadRequest, "Invalid category")
+	if cat := c.Query("category"); cat != "" {
+		catVal := models.ItemCategory(cat)
+		if !catVal.ValidateCategory() {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
 			return
 		}
-		category = &c
+		category = &catVal
 	}
 
-	if rar := r.URL.Query().Get("rarity"); rar != "" {
-		r := models.ItemRarity(rar)
-		if !r.ValidateRarity() {
-			RespondError(w, http.StatusBadRequest, "Invalid rarity")
+	if rar := c.Query("rarity"); rar != "" {
+		rarVal := models.ItemRarity(rar)
+		if !rarVal.ValidateRarity() {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rarity"})
 			return
 		}
-		rarity = &r
+		rarity = &rarVal
 	}
 
-	if s := r.URL.Query().Get("slot"); s != "" {
-		sl := models.ItemSlot(s)
-		if !sl.ValidateSlot() {
-			RespondError(w, http.StatusBadRequest, "Invalid slot")
+	if s := c.Query("slot"); s != "" {
+		slotVal := models.ItemSlot(s)
+		if !slotVal.ValidateSlot() {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid slot"})
 			return
 		}
-		slot = &sl
+		slot = &slotVal
 	}
 
-	items, err := h.itemRepo.List(category, rarity, slot)
+	items, err := h.repo.ListItems(category, rarity, slot)
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to list items")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list items"})
 		return
 	}
 
-	RespondJSON(w, http.StatusOK, items)
+	c.JSON(http.StatusOK, items)
 }
 
-func (h *ItemHandler) getItem(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "itemID"), 10, 64)
+func (h *ItemHandler) GetItem(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("item_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid item ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 
-	item, err := h.itemRepo.GetByID(id)
+	item, err := h.repo.GetItemByID(id)
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to get item")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get item"})
 		return
 	}
 	if item == nil {
-		RespondError(w, http.StatusNotFound, "Item not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 		return
 	}
 
-	RespondJSON(w, http.StatusOK, item)
+	c.JSON(http.StatusOK, item)
 }
 
 type createItemRequest struct {
@@ -117,27 +112,27 @@ type createItemRequest struct {
 	UnlockLevel *int                `json:"unlock_level,omitempty"`
 }
 
-func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
+func (h *ItemHandler) CreateItem(c *gin.Context) {
 	var req createItemRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if !req.Category.ValidateCategory() {
-		RespondError(w, http.StatusBadRequest, "Invalid category")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
 		return
 	}
 	if !req.Rarity.ValidateRarity() {
-		RespondError(w, http.StatusBadRequest, "Invalid rarity")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rarity"})
 		return
 	}
 	if req.Slot != nil && !req.Slot.ValidateSlot() {
-		RespondError(w, http.StatusBadRequest, "Invalid slot")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid slot"})
 		return
 	}
 	if req.Name == "" || req.AssetID == "" {
-		RespondError(w, http.StatusBadRequest, "Name and asset_id are required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name and asset_id are required"})
 		return
 	}
 
@@ -151,125 +146,125 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 		UnlockLevel: req.UnlockLevel,
 	}
 
-	if err := h.itemRepo.Create(item); err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to create item")
+	if err := h.repo.CreateItem(item); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create item"})
 		return
 	}
 
-	RespondJSON(w, http.StatusCreated, item)
+	c.JSON(http.StatusCreated, item)
 }
 
-func (h *ItemHandler) getInventory(w http.ResponseWriter, r *http.Request) {
-	pointlingID, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *ItemHandler) GetInventory(c *gin.Context) {
+	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
 	var equipped *bool
-	if e := r.URL.Query().Get("equipped"); e != "" {
+	if e := c.Query("equipped"); e != "" {
 		b := e == "true"
 		equipped = &b
 	}
 
-	items, err := h.pointlingItemRepo.GetItems(pointlingID, equipped)
+	items, err := h.repo.GetItems(pointlingID, equipped)
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to get inventory")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get inventory"})
 		return
 	}
 
-	RespondJSON(w, http.StatusOK, items)
+	c.JSON(http.StatusOK, items)
 }
 
-func (h *ItemHandler) acquireItem(w http.ResponseWriter, r *http.Request) {
-	pointlingID, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *ItemHandler) AcquireItem(c *gin.Context) {
+	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
-	itemID, err := strconv.ParseInt(chi.URLParam(r, "itemID"), 10, 64)
+	itemID, err := strconv.ParseInt(c.Param("item_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid item ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 
 	// Get item details
-	item, err := h.itemRepo.GetByID(itemID)
+	item, err := h.repo.GetItemByID(itemID)
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to get item")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get item"})
 		return
 	}
 	if item == nil {
-		RespondError(w, http.StatusNotFound, "Item not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 		return
 	}
 
 	// Get pointling details
-	pointling, err := h.pointlingRepo.GetByID(pointlingID)
+	pointling, err := h.repo.GetPointlingByID(pointlingID)
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to get pointling")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get pointling"})
 		return
 	}
 	if pointling == nil {
-		RespondError(w, http.StatusNotFound, "Pointling not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pointling not found"})
 		return
 	}
 
 	// Validate requirements
 	if item.UnlockLevel != nil && pointling.Level < *item.UnlockLevel {
-		RespondError(w, http.StatusForbidden, "Level requirement not met")
+		c.JSON(http.StatusForbidden, gin.H{"error": "Level requirement not met"})
 		return
 	}
 
 	// Add item to inventory
-	err = h.pointlingItemRepo.AddItem(pointlingID, itemID)
+	err = h.repo.AddItem(pointlingID, itemID)
 	if err == models.ErrAlreadyOwned {
-		RespondError(w, http.StatusConflict, "Item already owned")
+		c.JSON(http.StatusConflict, gin.H{"error": "Item already owned"})
 		return
 	}
 	if err != nil {
-		RespondError(w, http.StatusInternalServerError, "Failed to acquire item")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to acquire item"})
 		return
 	}
 
-	RespondJSON(w, http.StatusOK, item)
+	c.JSON(http.StatusOK, item)
 }
 
 type toggleEquippedRequest struct {
 	Equipped bool `json:"equipped"`
 }
 
-func (h *ItemHandler) toggleEquipped(w http.ResponseWriter, r *http.Request) {
-	pointlingID, err := strconv.ParseInt(chi.URLParam(r, "pointlingID"), 10, 64)
+func (h *ItemHandler) ToggleEquipped(c *gin.Context) {
+	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid pointling ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pointling ID"})
 		return
 	}
 
-	itemID, err := strconv.ParseInt(chi.URLParam(r, "itemID"), 10, 64)
+	itemID, err := strconv.ParseInt(c.Param("item_id"), 10, 64)
 	if err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid item ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 
 	var req toggleEquippedRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	err = h.pointlingItemRepo.InTransaction(func(repo models.PointlingItemRepository) error {
+	err = h.repo.InTransaction(func(repo *repository.PointlingRepository) error {
 		return repo.ToggleEquipped(pointlingID, itemID, req.Equipped)
 	})
 	if err != nil {
 		if err.Error() == "pointling does not own this item" {
-			RespondError(w, http.StatusNotFound, err.Error())
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		RespondError(w, http.StatusInternalServerError, "Failed to toggle equipped status")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to toggle equipped status"})
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }

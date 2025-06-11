@@ -1,85 +1,24 @@
 basePath: /api/v1
-definitions:
-  handlers.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  models.User:
-    properties:
-      created_at:
-        type: string
-      display_name:
-        type: string
-      point_balance:
-        type: integer
-      user_id:
-        type: integer
-    type: object
 host: localhost:8080
 info:
   contact: {}
-  description: This is a sample server for Pointlings MVP.
+  description: API for managing Pointlings, users, items, and XP system
   title: Pointlings API
   version: "1.0"
-paths:
-  /users:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user with the provided details
-      parameters:
-      - description: User object
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User created successfully
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Create a new user
-      tags:
-      - users
-  /users/{user_id}:
-    get:
-      consumes:
-      - application/json
-      description: Get a user's details by their ID
-      parameters:
-      - description: User ID
-        in: path
-        name: user_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User found
-          schema:
-            $ref: '#/definitions/models.User'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Get user by ID
-      tags:
-      - users
+paths: {}
+produces:
+- application/json
+schemes:
+- http
 swagger: "2.0"
+tags:
+- description: User management endpoints including creation, retrieval, and point
+    balance updates
+  name: Users
+- description: Pointling management including creation, customization, and XP system
+  name: Pointlings
+- description: Item catalog and inventory management for Pointlings
+  name: Items
+- description: Experience points system for Pointlings including gaining XP and leveling
+    up
+  name: XP

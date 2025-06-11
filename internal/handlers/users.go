@@ -2,30 +2,32 @@ package handlers
 
 import (
 	"database/sql"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"my-pointlings-be/internal/models"
+	"my-pointlings-be/internal/repository"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	repo models.UserRepository
+	repo repository.API
 }
 
-func NewUserHandler(repo models.UserRepository) *UserHandler {
+func NewUserHandler(repo repository.API) *UserHandler {
 	return &UserHandler{repo: repo}
 }
 
-func (h *UserHandler) RegisterRoutes(r chi.Router) {
-	r.Route("/api/v1/users", func(r chi.Router) {
-		r.Get("/", h.listUsers)
-		r.Post("/", h.createUser)
-		r.Get("/{userID}", h.getUser)
-		r.Patch("/{userID}/points", h.updatePoints)
-	})
+// Routes sets up all the user routes
+func (h *UserHandler) Routes(rg *gin.RouterGroup) {
+	users := rg.Group("/users")
+	{
+		users.GET("/", h.ListUsers)
+		users.POST("/", h.CreateUser)
+		users.GET("/:user_id", h.GetUser)
+		users.PATCH("/:user_id/points", h.UpdatePoints)
+	}
 }
 
 type createUserRequest struct {
@@ -37,15 +39,15 @@ type updatePointsRequest struct {
 	NewBalance int64 `json:"new_balance"`
 }
 
-func (h *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req createUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if req.UserID == 0 || req.DisplayName == "" {
-		respondError(w, http.StatusBadRequest, "user_id and display_name are required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and display_name are required"})
 		return
 	}
 
@@ -56,48 +58,48 @@ func (h *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.repo.CreateUser(user); err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to create user")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, user)
+	c.JSON(http.StatusCreated, user)
 }
 
-func (h *UserHandler) getUser(w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+func (h *UserHandler) GetUser(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
 	user, err := h.repo.GetUser(userID)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to get user")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user"})
 		return
 	}
 	if user == nil {
-		respondError(w, http.StatusNotFound, "User not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, user)
+	c.JSON(http.StatusOK, user)
 }
 
-func (h *UserHandler) updatePoints(w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+func (h *UserHandler) UpdatePoints(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid user ID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
 	var req updatePointsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if req.NewBalance < 0 {
-		respondError(w, http.StatusBadRequest, "Point balance cannot be negative")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Point balance cannot be negative"})
 		return
 	}
 
@@ -105,26 +107,26 @@ func (h *UserHandler) updatePoints(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case err == sql.ErrNoRows:
-			respondError(w, http.StatusNotFound, "User not found")
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		default:
-			respondError(w, http.StatusInternalServerError, "Failed to update points")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update points"})
 		}
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
-func (h *UserHandler) listUsers(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) ListUsers(c *gin.Context) {
 	limit := 50 // Default limit
 	offset := 0
 
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+	if limitStr := c.Query("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
 			limit = l
 		}
 	}
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+	if offsetStr := c.Query("offset"); offsetStr != "" {
 		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
 			offset = o
 		}
@@ -132,9 +134,9 @@ func (h *UserHandler) listUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.repo.ListUsers(limit, offset)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to list users")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list users"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, users)
+	c.JSON(http.StatusOK, users)
 }
