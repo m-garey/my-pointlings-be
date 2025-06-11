@@ -114,7 +114,6 @@ func setupPointlingRouter(
 		api.POST("/pointlings", pointlingHandler.CreatePointling)
 		api.GET("/pointlings/:pointling_id", pointlingHandler.GetPointling)
 		api.POST("/pointlings/:pointling_id/xp", pointlingHandler.AddXP)
-		api.GET("/pointlings/:pointling_id/xp/history", pointlingHandler.GetXPHistory)
 		api.PATCH("/pointlings/:pointling_id/nickname", pointlingHandler.UpdateNickname)
 		api.GET("/pointlings/user/:user_id", pointlingHandler.ListUserPointlings)
 
@@ -130,6 +129,5 @@ func setupPointlingRouter(
 
 		// Points spending
 		api.POST("/users/:user_id/points/spend", pointlingHandler.SpendPoints)
-		api.GET("/users/:user_id/points/history", pointlingHandler.GetSpendHistory)
 	}
 }

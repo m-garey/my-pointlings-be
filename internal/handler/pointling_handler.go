@@ -22,7 +22,6 @@ type API interface {
 	CreatePointling(c *gin.Context)
 	GetPointling(c *gin.Context)
 	AddXP(c *gin.Context)
-	GetXPHistory(c *gin.Context)
 	UpdateNickname(c *gin.Context)
 	ListUserPointlings(c *gin.Context)
 	ListItems(c *gin.Context)
@@ -32,7 +31,6 @@ type API interface {
 	AcquireItem(c *gin.Context)
 	ToggleEquipped(c *gin.Context)
 	SpendPoints(c *gin.Context)
-	GetSpendHistory(c *gin.Context)
 }
 
 func New(service service.API) *PointlingHandler {
@@ -118,16 +116,6 @@ func (h *PointlingHandler) AddXP(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response)
-}
-
-func (h *PointlingHandler) GetXPHistory(c *gin.Context) {
-	pointlingID := strings.TrimSpace(strings.ToUpper(strings.TrimPrefix(c.Param("pointling_id"), "/")))
-	history, serviceErr := h.service.GetXPHistory(c.Request.Context(), pointlingID)
-	if serviceErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": serviceErr.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, history)
 }
 
 func (h *PointlingHandler) UpdateNickname(c *gin.Context) {
@@ -232,14 +220,4 @@ func (h *PointlingHandler) SpendPoints(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "spendPoints"})
-}
-
-func (h *PointlingHandler) GetSpendHistory(c *gin.Context) {
-	userID := strings.TrimSpace(strings.ToUpper(strings.TrimPrefix(c.Param("user_id"), "/")))
-	history, err := h.service.GetSpendHistory(c.Request.Context(), userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, history)
 }

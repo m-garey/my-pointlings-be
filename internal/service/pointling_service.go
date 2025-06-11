@@ -22,7 +22,6 @@ type API interface {
 	CreatePointling(c context.Context, req model.CreatePointlingRequest) (model.SuccessResponse, error)
 	GetPointling(c context.Context, pointlingID string) (model.Pointling, error)
 	AddXP(c context.Context, req model.XPUpdateRequest) (model.XPUpdateResponse, error)
-	GetXPHistory(c context.Context, pointlingID string) (model.XPHistoryResponse, error)
 	UpdateNickname(c context.Context, req model.UpdateNicknameRequest) (model.SuccessResponse, error)
 	ListUserPointlings(c context.Context, userID string) (model.PointlingListResponse, error)
 	ListItems(c context.Context) (model.ItemListResponse, error)
@@ -32,7 +31,6 @@ type API interface {
 	AcquireItem(c context.Context, acquire model.AcquireItemRequest) (model.SuccessResponse, error)
 	ToggleEquipped(c context.Context, toggle model.ToggleEquippedRequest) (model.Pointling, error)
 	SpendPoints(c context.Context, spend model.SpendPointsRequest) (model.SuccessResponse, error)
-	GetSpendHistory(c context.Context, userID string) (model.SpendHistoryResponse, error)
 }
 
 func New(pointlingRepo repository.API) *PointlingService {
@@ -136,10 +134,6 @@ func (s *PointlingService) AddXP(c context.Context, req model.XPUpdateRequest) (
 				{"accessory", "a005"},
 			},
 		}, nil
-}
-
-func (s *PointlingService) GetXPHistory(c context.Context, pointlingID string) (model.XPHistoryResponse, error) {
-	return model.XPHistoryResponse{History: []model.XPHistoryEntry{}}, nil
 }
 
 func (s *PointlingService) UpdateNickname(c context.Context, req model.UpdateNicknameRequest) (model.SuccessResponse, error) {
@@ -261,22 +255,6 @@ func (s *PointlingService) SpendPoints(c context.Context, spend model.SpendPoint
 		return model.SuccessResponse{Success: false}, err
 	}
 	return model.SuccessResponse{Success: true}, nil
-}
-
-func (s *PointlingService) GetSpendHistory(c context.Context, userID string) (model.SpendHistoryResponse, error) {
-	spends, err := s.PointlingRepo.GetUser(parseID(userID))
-	if err != nil {
-		return model.SpendHistoryResponse{}, err
-	}
-	var res model.SpendHistoryResponse
-	for _, s := range spends {
-		res.History = append(res.History, model.SpendHistoryEntry{
-			ItemID:    strconv.FormatInt(s.ItemID, 10),
-			Amount:    s.PointsSpent,
-			Timestamp: s.SpendTS.Format("2006-01-02T15:04:05Z07:00"),
-		})
-	}
-	return res, nil
 }
 
 // Helper function to parse ID

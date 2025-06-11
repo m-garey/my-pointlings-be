@@ -27,16 +27,6 @@ type SpendPointsRequest struct {
 	ItemID string `json:"item_id"`
 }
 
-type SpendHistoryEntry struct {
-	ItemID    string `json:"item_id"`
-	Amount    int    `json:"amount"`
-	Timestamp string `json:"timestamp"`
-}
-
-type SpendHistoryResponse struct {
-	History []SpendHistoryEntry `json:"history"`
-}
-
 // ---------- POINTLINGS ----------
 type Pointling struct {
 	PointlingID  string `json:"pointling_id"`
@@ -66,16 +56,6 @@ type XPUpdateResponse struct {
 	LeveledUp  bool `json:"leveled_up"`
 	NewLevel   int  `json:"new_level"`
 	RequiredXP int  `json:"required_xp"`
-}
-
-type XPHistoryEntry struct {
-	XP        int    `json:"xp"`
-	Source    string `json:"source"`
-	Timestamp string `json:"timestamp"`
-}
-
-type XPHistoryResponse struct {
-	History []XPHistoryEntry `json:"history"`
 }
 
 type UpdateNicknameRequest struct {

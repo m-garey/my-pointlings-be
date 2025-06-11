@@ -50,16 +50,6 @@ type AddXPRequest struct {
 	XPGain int `json:"xp_gain" binding:"required"`
 }
 
-type XPHistoryEntry struct {
-	XP        int    `json:"xp"`
-	Source    string `json:"source"`
-	Timestamp string `json:"timestamp"`
-}
-
-type XPHistoryResponse struct {
-	History []XPHistoryEntry `json:"history"`
-}
-
 // PATCH /pointlings/:pointling_id/nickname
 // UpdateNicknameRequest holds new nickname for a pointling
 type UpdateNicknameRequest struct {
