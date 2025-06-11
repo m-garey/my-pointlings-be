@@ -5,11 +5,7 @@ import (
 	"strings"
 
 	pointling_model "my-pointlings-be/internal/handler/model"
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	"my-pointlings-be/internal/service"
-=======
-	pointling_service "my-pointlings-be/internal/service/pointling_service"
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,13 +39,8 @@ func New(service service.API) *PointlingHandler {
 	return &PointlingHandler{service: service}
 }
 
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 func (h *PointlingHandler) listUsers(c *gin.Context) {
 	if _, err := h.service.ListUsers(c.Request.Context()); err != nil {
-=======
-func (h *PointlingHandler) ListUsers(c *gin.Context) {
-	if err := h.pointlingService.ListUsers(c.Request.Context()); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -85,11 +76,7 @@ func (h *PointlingHandler) UpdateUserPoints(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
-	if err := h.service.UpdateUserPoints(c.Request.Context(), pointling); err != nil {
-=======
-	if _, err := h.pointlingService.UpdateUserPoints(c.Request.Context(), pointling); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
+	if _, err := h.service.UpdateUserPoints(c.Request.Context(), pointling); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -102,11 +89,7 @@ func (h *PointlingHandler) CreatePointling(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	if _, err := h.service.CreatePointling(c.Request.Context(), pointling); err != nil {
-=======
-	if _, err := h.pointlingService.CreatePointling(c.Request.Context(), pointling); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -170,13 +153,8 @@ func (h *PointlingHandler) ListUserPointlings(c *gin.Context) {
 	c.JSON(http.StatusOK, pointlings)
 }
 
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 func (h *PointlingHandler) listItems(c *gin.Context) {
 	items, err := h.service.ListItems(c.Request.Context())
-=======
-func (h *PointlingHandler) ListItems(c *gin.Context) {
-	items, err := h.pointlingService.ListItems(c.Request.Context())
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -200,11 +178,7 @@ func (h *PointlingHandler) CreateItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	if _, err := h.service.CreateItem(c.Request.Context(), item); err != nil {
-=======
-	if _, err := h.pointlingService.CreateItem(c.Request.Context(), item); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -227,11 +201,7 @@ func (h *PointlingHandler) AcquireItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	if _, err := h.service.AcquireItem(c.Request.Context(), item); err != nil {
-=======
-	if _, err := h.pointlingService.AcquireItem(c.Request.Context(), item); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -244,11 +214,7 @@ func (h *PointlingHandler) ToggleEquipped(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	if _, err := h.service.ToggleEquipped(c.Request.Context(), item); err != nil {
-=======
-	if pointling, err := h.pointlingService.ToggleEquipped(c.Request.Context(), item); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -261,11 +227,7 @@ func (h *PointlingHandler) SpendPoints(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD:internal/handler/pointling_handler.go
 	if _, err := h.service.SpendPoints(c.Request.Context(), item); err != nil {
-=======
-	if _, err := h.pointlingService.SpendPoints(c.Request.Context(), item); err != nil {
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d):internal/handler/pointling_handler/pointling_handler.go
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
