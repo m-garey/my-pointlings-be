@@ -17,6 +17,7 @@ import (
 	"my-pointlings-be/internal/service"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -64,7 +65,7 @@ func Run() {
 
 func setupDB(cfg *config.Config) *sql.DB {
 	// Connect to Supabase Postgres via pgx driver
-	db, err := sql.Open("pgx", cfg.SupabaseURL+"?sslmode=require")
+	db, err := sql.Open("pgx", cfg.DBAddr)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

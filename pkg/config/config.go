@@ -9,9 +9,8 @@ import (
 
 // Config holds runtime configuration loaded from environment.
 type Config struct {
-	SupabaseURL        string
-	SupabaseServiceKey string
-	HTTPAddr           string
+	DBAddr   string
+	HTTPAddr string
 }
 
 // Load reads .env (if present) and required variables from the environment.
@@ -21,14 +20,12 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		SupabaseURL:        os.Getenv("SUPABASE_URL"),
-		SupabaseServiceKey: os.Getenv("SUPABASE_SERVICE_KEY"),
-		HTTPAddr:           os.Getenv("HTTP_ADDR"),
+		DBAddr:   os.Getenv("SUPABASE_DB_URL"),
+		HTTPAddr: os.Getenv("HTTP_ADDR"),
 	}
 
-	if cfg.SupabaseURL == "" ||
-		cfg.SupabaseServiceKey == "" {
-		log.Fatal("missing required environment variables: SUPABASE_URL and/or SUPABASE_SERVICE_KEY")
+	if cfg.DBAddr == "" {
+		log.Fatal("missing required environment variables: SUPABASE_DB_URL")
 	}
 
 	if cfg.HTTPAddr == "" {
