@@ -6,10 +6,6 @@ import (
 	model "my-pointlings-be/internal/service/model"
 )
 
-type PointlingService struct {
-	PointlingRepo pointling_repo.API
-}
-
 type API interface {
 	listUsers(c context.Context) (model.UserListResponse, error)
 	createUser(c *context.Context, user model.CreateUserRequest) (model.SuccessResponse, error)
@@ -29,6 +25,10 @@ type API interface {
 	toggleEquipped(c *context.Context, toggle model.ToggleEquippedRequest) (model.Pointling, error)
 	spendPoints(c *context.Context, spendPoints model.SpendPointsRequest) (model.SuccessResponse, error)
 	getSpendHistory(c *context.Context, userID string) (model.SpendHistoryResponse, error)
+}
+
+type PointlingService struct {
+	PointlingRepo pointling_repo.API
 }
 
 func New(pointlingRepo pointling_repo.API) *PointlingService {

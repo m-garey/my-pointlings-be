@@ -13,6 +13,13 @@ type CreateUserRequest struct {
 	PointAmount int    `json:"point_amount" binding:"required"`
 }
 
+type User struct {
+	UserID      string `json:"user_id"`
+	UserName    string `json:"user_name"`
+	PointlingID string `json:"pointling_id"`
+	PointAmount int    `json:"point_amount"`
+}
+
 // PATCH /users/:user_id/points
 // UpdateUserPointsRequest holds data to update user points
 type UpdateUserPointsRequest struct {
@@ -20,6 +27,16 @@ type UpdateUserPointsRequest struct {
 }
 
 // POINTLINGS
+
+type Pointling struct {
+	PointlingID  string `json:"pointling_id"`
+	Name         string `json:"pointling_name"`
+	CurrentXP    int    `json:"current_xp"`
+	RequiredXP   int    `json:"required_xp"`
+	Level        int    `json:"current_level"`
+	AppearanceID string `json:"appearance_id"`
+	WardrobeID   string `json:"wardrobe_id"`
+}
 
 // POST /pointlings
 // CreatePointlingRequest holds data to create a pointling
@@ -31,6 +48,16 @@ type CreatePointlingRequest struct {
 // AddXPRequest holds XP to be added
 type AddXPRequest struct {
 	XPGain int `json:"xp_gain" binding:"required"`
+}
+
+type XPHistoryEntry struct {
+	XP        int    `json:"xp"`
+	Source    string `json:"source"`
+	Timestamp string `json:"timestamp"`
+}
+
+type XPHistoryResponse struct {
+	History []XPHistoryEntry `json:"history"`
 }
 
 // PATCH /pointlings/:pointling_id/nickname
