@@ -12,15 +12,9 @@ import (
 	"syscall"
 	"time"
 
-<<<<<<< HEAD
 	"my-pointlings-be/internal/handler"
 	"my-pointlings-be/internal/repository"
 	"my-pointlings-be/internal/service"
-=======
-	"my-pointlings-be/internal/handler/pointling_handler"
-	"my-pointlings-be/internal/repository/pointling_repo"
-	"my-pointlings-be/internal/service/pointling_service"
->>>>>>> b5512fa (sl;dkfjasl;dkfjas;d)
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -106,7 +100,7 @@ func setupRouter() *gin.Engine {
 
 func setupPointlingRouter(
 	r *gin.Engine,
-	pointlingHandler pointling_handler.API) {
+	pointlingHandler handler.API) {
 
 	api := r.Group("/api")
 	{
