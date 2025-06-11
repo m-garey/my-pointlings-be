@@ -1,36 +1,36 @@
-package pointling_service
+package service
 
 import (
 	"context"
-	"my-pointlings-be/internal/repository/pointling_repo"
+	"my-pointlings-be/internal/repository"
 	model "my-pointlings-be/internal/service/model"
 )
 
 type API interface {
-	listUsers(c context.Context) (model.UserListResponse, error)
-	createUser(c *context.Context, user model.CreateUserRequest) (model.SuccessResponse, error)
-	getUser(c *context.Context, userID string) (model.User, error)
-	updateUserPoints(c *context.Context, updateUserPoints model.UpdateUserPointsRequest) (model.SuccessResponse, error)
-	createPointling(c *context.Context, pointling model.CreatePointlingRequest) (model.SuccessResponse, error)
-	getPointling(c *context.Context, pointlingID string) (model.Pointling, error)
-	addXP(c *context.Context, xpUpdate model.XPUpdateRequest) (model.XPUpdateResponse, model.LevelUpOptionsResponse, error)
-	getXPHistory(c *context.Context, pointlingID string) (model.XPHistoryResponse, error)
-	updateNickname(c *context.Context, updateNickname model.UpdateNicknameRequest) (model.SuccessResponse, error)
-	listUserPointlings(c *context.Context, pointlingID string) (model.PointlingListResponse, error)
-	listItems(c *context.Context) (model.ItemListResponse, error)
-	getItem(c *context.Context, itemID string) (model.Item, error)
-	createItem(c *context.Context, item model.CreateItemRequest) (model.SuccessResponse, error)
-	getInventory(c *context.Context, pointlingID string) model.InventoryResponse
-	acquireItem(c *context.Context, acquire model.AcquireItemRequest) (model.SuccessResponse, error)
-	toggleEquipped(c *context.Context, toggle model.ToggleEquippedRequest) (model.Pointling, error)
-	spendPoints(c *context.Context, spendPoints model.SpendPointsRequest) (model.SuccessResponse, error)
-	getSpendHistory(c *context.Context, userID string) (model.SpendHistoryResponse, error)
+	ListUsers(c context.Context) (model.UserListResponse, error)
+	CreateUser(c context.Context, user model.CreateUserRequest) (model.SuccessResponse, error)
+	GetUser(c context.Context, userID string) (model.User, error)
+	UpdateUserPoints(c context.Context, updateUserPoints model.UpdateUserPointsRequest) (model.SuccessResponse, error)
+	CreatePointling(c context.Context, pointling model.CreatePointlingRequest) (model.SuccessResponse, error)
+	GetPointling(c context.Context, pointlingID string) (model.Pointling, error)
+	AddXP(c context.Context, xpUpdate model.XPUpdateRequest) (model.XPUpdateResponse, model.LevelUpOptionsResponse, error)
+	GetXPHistory(c context.Context, pointlingID string) (model.XPHistoryResponse, error)
+	UpdateNickname(c context.Context, updateNickname model.UpdateNicknameRequest) (model.SuccessResponse, error)
+	ListUserPointlings(c context.Context, pointlingID string) (model.PointlingListResponse, error)
+	ListItems(c context.Context) (model.ItemListResponse, error)
+	GetItem(c context.Context, itemID string) (model.Item, error)
+	CreateItem(c context.Context, item model.CreateItemRequest) (model.SuccessResponse, error)
+	GetInventory(c context.Context, pointlingID string) (model.InventoryResponse, error)
+	AcquireItem(c context.Context, acquire model.AcquireItemRequest) (model.SuccessResponse, error)
+	ToggleEquipped(c context.Context, toggle model.ToggleEquippedRequest) (model.Pointling, error)
+	SpendPoints(c context.Context, spendPoints model.SpendPointsRequest) (model.SuccessResponse, error)
+	GetSpendHistory(c context.Context, userID string) (model.SpendHistoryResponse, error)
 }
 
 type PointlingService struct {
-	PointlingRepo pointling_repo.API
+	PointlingRepo repository.API
 }
 
-func New(pointlingRepo pointling_repo.API) *PointlingService {
+func New(pointlingRepo repository.API) *PointlingService {
 	return &PointlingService{PointlingRepo: pointlingRepo}
 }

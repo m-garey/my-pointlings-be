@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	pointling_handler "my-pointlings-be/internal/handler/pointling_handler"
-	pointling_repo "my-pointlings-be/internal/repository/pointling_repo"
-	pointling_service "my-pointlings-be/internal/service/pointling_service"
+	"my-pointlings-be/internal/handler"
+	"my-pointlings-be/internal/repository"
+	"my-pointlings-be/internal/service"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -26,9 +26,9 @@ func Run() {
 
 	db := setupDB(cfg)
 
-	pointlingRepo := pointling_repo.New(db)
-	pointlingService := pointling_service.New(pointlingRepo)
-	pointlingHandler := pointling_handler.New(pointlingService)
+	pointlingRepo := repository.New(db)
+	pointlingService := service.New(pointlingRepo)
+	pointlingHandler := handler.New(pointlingService)
 	router := setupRouter()
 	setupPointlingRouter(router, pointlingHandler)
 

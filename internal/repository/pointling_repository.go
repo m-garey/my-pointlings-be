@@ -1,4 +1,4 @@
-package pointling_repo
+package repository
 
 import (
 	"context"
