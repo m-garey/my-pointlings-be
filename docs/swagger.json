@@ -1,14 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample server for Pointlings MVP.",
-        "title": "Pointlings API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "localhost:8080",
-<<<<<<< HEAD
-    "basePath": "/api/v1",
     "paths": {
         "/users": {
             "post": {
@@ -128,8 +122,4 @@
             }
         }
     }
-=======
-    "basePath": "/",
-    "paths": {}
->>>>>>> 64a676e (updates)
 }
