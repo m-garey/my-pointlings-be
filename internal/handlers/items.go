@@ -23,6 +23,9 @@ func NewItemHandler(
 }
 
 // Routes sets up all the item-related routes
+// @Summary Set up item routes
+// @Description Initializes all item-related API endpoints
+// @Tags Items
 func (h *ItemHandler) Routes(rg *gin.RouterGroup) {
 	// Item catalog endpoints
 	items := rg.Group("/items")
@@ -41,6 +44,19 @@ func (h *ItemHandler) Routes(rg *gin.RouterGroup) {
 	}
 }
 
+// ListItems godoc
+// @Summary List available items
+// @Description Get a list of items with optional filtering by category, rarity, and slot
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param category query string false "Filter by item category (e.g. COSMETIC, CONSUMABLE)"
+// @Param rarity query string false "Filter by item rarity (e.g. COMMON, RARE, EPIC)"
+// @Param slot query string false "Filter by item slot (e.g. HEAD, BODY, ACCESSORY)"
+// @Success 200 {array} models.Item
+// @Failure 400 {object} ErrorResponse "Invalid category/rarity/slot"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /items [get]
 func (h *ItemHandler) ListItems(c *gin.Context) {
 	var category *models.ItemCategory
 	var rarity *models.ItemRarity
@@ -82,6 +98,18 @@ func (h *ItemHandler) ListItems(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
+// GetItem godoc
+// @Summary Get item details
+// @Description Get detailed information about a specific item
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param item_id path int true "Item ID"
+// @Success 200 {object} models.Item
+// @Failure 400 {object} ErrorResponse "Invalid item ID"
+// @Failure 404 {object} ErrorResponse "Item not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /items/{item_id} [get]
 func (h *ItemHandler) GetItem(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("item_id"), 10, 64)
 	if err != nil {
@@ -102,16 +130,28 @@ func (h *ItemHandler) GetItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
+// createItemRequest represents the request body for creating a new item
 type createItemRequest struct {
-	Category    models.ItemCategory `json:"category"`
-	Slot        *models.ItemSlot    `json:"slot,omitempty"`
-	AssetID     string              `json:"asset_id"`
-	Name        string              `json:"name"`
-	Rarity      models.ItemRarity   `json:"rarity"`
-	PricePoints *int                `json:"price_points,omitempty"`
-	UnlockLevel *int                `json:"unlock_level,omitempty"`
+	Category    models.ItemCategory `json:"category" example:"COSMETIC"`
+	Slot        *models.ItemSlot    `json:"slot,omitempty" example:"HEAD"`
+	AssetID     string              `json:"asset_id" example:"hat_001"`
+	Name        string              `json:"name" example:"Cool Hat"`
+	Rarity      models.ItemRarity   `json:"rarity" example:"RARE"`
+	PricePoints *int                `json:"price_points,omitempty" example:"100"`
+	UnlockLevel *int                `json:"unlock_level,omitempty" example:"5"`
 }
 
+// CreateItem godoc
+// @Summary Create a new item
+// @Description Create a new item in the catalog (admin only)
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param request body createItemRequest true "Item creation request"
+// @Success 201 {object} models.Item
+// @Failure 400 {object} ErrorResponse "Invalid request body/parameters"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /items [post]
 func (h *ItemHandler) CreateItem(c *gin.Context) {
 	var req createItemRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -154,6 +194,18 @@ func (h *ItemHandler) CreateItem(c *gin.Context) {
 	c.JSON(http.StatusCreated, item)
 }
 
+// GetInventory godoc
+// @Summary Get pointling's inventory
+// @Description List all items owned by a pointling with optional equipped filter
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param equipped query boolean false "Filter by equipped status"
+// @Success 200 {array} models.Item
+// @Failure 400 {object} ErrorResponse "Invalid pointling ID"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/items [get]
 func (h *ItemHandler) GetInventory(c *gin.Context) {
 	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
@@ -176,6 +228,21 @@ func (h *ItemHandler) GetInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
+// AcquireItem godoc
+// @Summary Acquire an item for a pointling
+// @Description Add an item to a pointling's inventory (requires meeting level requirements)
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param item_id path int true "Item ID"
+// @Success 200 {object} models.Item
+// @Failure 400 {object} ErrorResponse "Invalid pointling/item ID"
+// @Failure 403 {object} ErrorResponse "Level requirement not met"
+// @Failure 404 {object} ErrorResponse "Pointling/item not found"
+// @Failure 409 {object} ErrorResponse "Item already owned"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/items/{item_id} [post]
 func (h *ItemHandler) AcquireItem(c *gin.Context) {
 	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
@@ -231,10 +298,25 @@ func (h *ItemHandler) AcquireItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
+// toggleEquippedRequest represents the request body for equipping/unequipping an item
 type toggleEquippedRequest struct {
-	Equipped bool `json:"equipped"`
+	Equipped bool `json:"equipped" example:"true"`
 }
 
+// ToggleEquipped godoc
+// @Summary Toggle item equipped status
+// @Description Equip or unequip an item for a pointling
+// @Tags Items
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param item_id path int true "Item ID"
+// @Param request body toggleEquippedRequest true "Toggle equipped request"
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse "Invalid pointling/item ID or request body"
+// @Failure 404 {object} ErrorResponse "Pointling does not own this item"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/items/{item_id}/equip [patch]
 func (h *ItemHandler) ToggleEquipped(c *gin.Context) {
 	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {

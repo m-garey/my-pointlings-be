@@ -19,8 +19,10 @@ func NewPointlingHandler(repo repository.API) *PointlingHandler {
 	return &PointlingHandler{repo: repo}
 }
 
-// RegisterRoutes adds the pointling endpoints to the provided router
 // Routes sets up all the pointling routes
+// @Summary Set up pointling routes
+// @Description Initializes all pointling-related API endpoints
+// @Tags Pointlings
 func (h *PointlingHandler) Routes(rg *gin.RouterGroup) {
 	pointlings := rg.Group("/pointlings")
 	{
@@ -31,11 +33,23 @@ func (h *PointlingHandler) Routes(rg *gin.RouterGroup) {
 	}
 }
 
+// createPointlingRequest represents the request body for creating a new pointling
 type createPointlingRequest struct {
-	UserID   int64   `json:"user_id"`
-	Nickname *string `json:"nickname,omitempty"`
+	UserID   int64   `json:"user_id" example:"123"`
+	Nickname *string `json:"nickname,omitempty" example:"MyPointling"`
 }
 
+// CreatePointling godoc
+// @Summary Create a new pointling
+// @Description Create a new pointling for a user with optional nickname
+// @Tags Pointlings
+// @Accept json
+// @Produce json
+// @Param request body createPointlingRequest true "Pointling creation request"
+// @Success 201 {object} models.Pointling
+// @Failure 400 {object} ErrorResponse "Invalid request body or missing user_id"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings [post]
 func (h *PointlingHandler) CreatePointling(c *gin.Context) {
 	var req createPointlingRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -58,6 +72,18 @@ func (h *PointlingHandler) CreatePointling(c *gin.Context) {
 	c.JSON(http.StatusCreated, pointling)
 }
 
+// GetPointling godoc
+// @Summary Get pointling details
+// @Description Get detailed information about a specific pointling
+// @Tags Pointlings
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Success 200 {object} models.Pointling
+// @Failure 400 {object} ErrorResponse "Invalid pointling ID"
+// @Failure 404 {object} ErrorResponse "Pointling not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id} [get]
 func (h *PointlingHandler) GetPointling(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
@@ -78,10 +104,24 @@ func (h *PointlingHandler) GetPointling(c *gin.Context) {
 	c.JSON(http.StatusOK, pointling)
 }
 
+// updateNicknameRequest represents the request body for updating a pointling's nickname
 type updateNicknameRequest struct {
-	Nickname *string `json:"nickname"`
+	Nickname *string `json:"nickname" example:"CoolPointling"`
 }
 
+// UpdateNickname godoc
+// @Summary Update pointling nickname
+// @Description Update or remove a pointling's nickname
+// @Tags Pointlings
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param request body updateNicknameRequest true "Nickname update request"
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse "Invalid pointling ID or request body"
+// @Failure 404 {object} ErrorResponse "Pointling not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/nickname [patch]
 func (h *PointlingHandler) UpdateNickname(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
@@ -107,6 +147,17 @@ func (h *PointlingHandler) UpdateNickname(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// ListUserPointlings godoc
+// @Summary List user's pointlings
+// @Description Get all pointlings owned by a specific user
+// @Tags Pointlings
+// @Accept json
+// @Produce json
+// @Param user_id path int true "User ID"
+// @Success 200 {array} models.Pointling
+// @Failure 400 {object} ErrorResponse "Invalid user ID"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/user/{user_id} [get]
 func (h *PointlingHandler) ListUserPointlings(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {

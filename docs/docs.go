@@ -17,7 +17,1373 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/items": {
+            "get": {
+                "description": "Get a list of items with optional filtering by category, rarity, and slot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "List available items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by item category (e.g. COSMETIC, CONSUMABLE)",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by item rarity (e.g. COMMON, RARE, EPIC)",
+                        "name": "rarity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by item slot (e.g. HEAD, BODY, ACCESSORY)",
+                        "name": "slot",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Item"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid category/rarity/slot",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new item in the catalog (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Create a new item",
+                "parameters": [
+                    {
+                        "description": "Item creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body/parameters",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{item_id}": {
+            "get": {
+                "description": "Get detailed information about a specific item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Get item details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "item_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid item ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings": {
+            "post": {
+                "description": "Create a new pointling for a user with optional nickname",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pointlings"
+                ],
+                "summary": "Create a new pointling",
+                "parameters": [
+                    {
+                        "description": "Pointling creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPointlingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Pointling"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or missing user_id",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/user/{user_id}": {
+            "get": {
+                "description": "Get all pointlings owned by a specific user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pointlings"
+                ],
+                "summary": "List user's pointlings",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Pointling"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}": {
+            "get": {
+                "description": "Get detailed information about a specific pointling",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pointlings"
+                ],
+                "summary": "Get pointling details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Pointling"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pointling ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pointling not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/items": {
+            "get": {
+                "description": "List all items owned by a pointling with optional equipped filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Get pointling's inventory",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by equipped status",
+                        "name": "equipped",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Item"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pointling ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/items/{item_id}": {
+            "post": {
+                "description": "Add an item to a pointling's inventory (requires meeting level requirements)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Acquire an item for a pointling",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "item_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pointling/item ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Level requirement not met",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pointling/item not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Item already owned",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/items/{item_id}/equip": {
+            "patch": {
+                "description": "Equip or unequip an item for a pointling",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Toggle item equipped status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "item_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Toggle equipped request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.toggleEquippedRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid pointling/item ID or request body",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pointling does not own this item",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/nickname": {
+            "patch": {
+                "description": "Update or remove a pointling's nickname",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pointlings"
+                ],
+                "summary": "Update pointling nickname",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nickname update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.updateNicknameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid pointling ID or request body",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pointling not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/xp": {
+            "post": {
+                "description": "Award experience points to a pointling from a specific source",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "XP"
+                ],
+                "summary": "Add XP to pointling",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "XP addition request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.addXPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.addXPResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pointling ID, request body, or XP amount",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pointling not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Daily XP limit reached for this source",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pointlings/{pointling_id}/xp/history": {
+            "get": {
+                "description": "Get paginated history of XP gains for a pointling",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "XP"
+                ],
+                "summary": "Get XP history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pointling ID",
+                        "name": "pointling_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Number of records to return (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.XPEvent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pointling ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/points/{userID}/history": {
+            "get": {
+                "description": "Get paginated history of a user's point spending transactions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Points"
+                ],
+                "summary": "Get point spending history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Number of records to return (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of records to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.PointSpend"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/points/{userID}/spend": {
+            "post": {
+                "description": "Purchase an item for a pointling using user's points",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Points"
+                ],
+                "summary": "Spend points on an item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Points spending request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.spendPointsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TransactionSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID or request body",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "402": {
+                        "description": "Insufficient points",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Item already owned",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Get a paginated list of all users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List all users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Number of records to return (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of records to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new user account with display name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "User creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "description": "Get detailed information about a specific user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/points": {
+            "patch": {
+                "description": "Set a new point balance for a user (cannot be negative)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user's point balance",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Points update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.updatePointsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid user ID, request body, or negative balance",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.addXPRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 100
+                },
+                "source": {
+                    "enum": [
+                        "QUEST_COMPLETE",
+                        "DAILY_LOGIN",
+                        "ACHIEVEMENT"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.XPEventSource"
+                        }
+                    ],
+                    "example": "QUEST_COMPLETE"
+                }
+            }
+        },
+        "handlers.addXPResponse": {
+            "type": "object",
+            "properties": {
+                "event": {
+                    "$ref": "#/definitions/models.XPEvent"
+                },
+                "leveled_up": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "new_level": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "new_total": {
+                    "type": "integer",
+                    "example": 1250
+                },
+                "pointling_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "required_xp": {
+                    "type": "integer",
+                    "example": 2000
+                },
+                "xp_gained": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "handlers.createItemRequest": {
+            "type": "object",
+            "properties": {
+                "asset_id": {
+                    "type": "string",
+                    "example": "hat_001"
+                },
+                "category": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ItemCategory"
+                        }
+                    ],
+                    "example": "COSMETIC"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Cool Hat"
+                },
+                "price_points": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "rarity": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ItemRarity"
+                        }
+                    ],
+                    "example": "RARE"
+                },
+                "slot": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ItemSlot"
+                        }
+                    ],
+                    "example": "HEAD"
+                },
+                "unlock_level": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "handlers.createPointlingRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string",
+                    "example": "MyPointling"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
+        "handlers.createUserRequest": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "example": "JohnDoe"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
+        "handlers.spendPointsRequest": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "pointling_id": {
+                    "type": "integer",
+                    "example": 456
+                }
+            }
+        },
+        "handlers.toggleEquippedRequest": {
+            "type": "object",
+            "properties": {
+                "equipped": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handlers.updateNicknameRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string",
+                    "example": "CoolPointling"
+                }
+            }
+        },
+        "handlers.updatePointsRequest": {
+            "type": "object",
+            "properties": {
+                "new_balance": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 1000
+                }
+            }
+        },
+        "models.Item": {
+            "type": "object",
+            "properties": {
+                "asset_id": {
+                    "type": "string"
+                },
+                "category": {
+                    "$ref": "#/definitions/models.ItemCategory"
+                },
+                "item_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price_points": {
+                    "type": "integer"
+                },
+                "rarity": {
+                    "$ref": "#/definitions/models.ItemRarity"
+                },
+                "slot": {
+                    "$ref": "#/definitions/models.ItemSlot"
+                },
+                "unlock_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ItemCategory": {
+            "type": "string",
+            "enum": [
+                "ACCESSORY",
+                "FEATURE"
+            ],
+            "x-enum-varnames": [
+                "CategoryAccessory",
+                "CategoryFeature"
+            ]
+        },
+        "models.ItemRarity": {
+            "type": "string",
+            "enum": [
+                "COMMON",
+                "RARE",
+                "EPIC",
+                "LEGENDARY"
+            ],
+            "x-enum-varnames": [
+                "RarityCommon",
+                "RarityRare",
+                "RarityEpic",
+                "RarityLegendary"
+            ]
+        },
+        "models.ItemSlot": {
+            "type": "string",
+            "enum": [
+                "HAT",
+                "SHOES",
+                "FACE",
+                "WINGS"
+            ],
+            "x-enum-varnames": [
+                "SlotHat",
+                "SlotShoes",
+                "SlotFace",
+                "SlotWings"
+            ]
+        },
+        "models.JSONMap": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "models.PointSpend": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "description": "Joined data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Item"
+                        }
+                    ]
+                },
+                "item_id": {
+                    "type": "integer"
+                },
+                "points_spent": {
+                    "type": "integer"
+                },
+                "spend_id": {
+                    "type": "integer"
+                },
+                "spend_ts": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Pointling": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "current_xp": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "look_json": {
+                    "$ref": "#/definitions/models.JSONMap"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "personality_id": {
+                    "type": "integer"
+                },
+                "pointling_id": {
+                    "type": "integer"
+                },
+                "required_xp": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TransactionSuccess": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer"
+                },
+                "new_balance": {
+                    "type": "integer"
+                },
+                "points_spent": {
+                    "type": "integer"
+                },
+                "previous_spend": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "point_balance": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.XPEvent": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "integer"
+                },
+                "event_ts": {
+                    "type": "string"
+                },
+                "pointling_id": {
+                    "type": "integer"
+                },
+                "source": {
+                    "$ref": "#/definitions/models.XPEventSource"
+                },
+                "xp_amount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.XPEventSource": {
+            "type": "string",
+            "enum": [
+                "RECEIPT",
+                "PLAY",
+                "DAILY"
+            ],
+            "x-enum-varnames": [
+                "XPSourceReceipt",
+                "XPSourcePlay",
+                "XPSourceDaily"
+            ]
+        }
+    },
     "tags": [
         {
             "description": "User management endpoints including creation, retrieval, and point balance updates",

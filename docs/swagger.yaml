@@ -1,11 +1,921 @@
 basePath: /api/v1
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.addXPRequest:
+    properties:
+      amount:
+        example: 100
+        minimum: 1
+        type: integer
+      source:
+        allOf:
+        - $ref: '#/definitions/models.XPEventSource'
+        enum:
+        - QUEST_COMPLETE
+        - DAILY_LOGIN
+        - ACHIEVEMENT
+        example: QUEST_COMPLETE
+    type: object
+  handlers.addXPResponse:
+    properties:
+      event:
+        $ref: '#/definitions/models.XPEvent'
+      leveled_up:
+        example: true
+        type: boolean
+      new_level:
+        example: 5
+        type: integer
+      new_total:
+        example: 1250
+        type: integer
+      pointling_id:
+        example: 123
+        type: integer
+      required_xp:
+        example: 2000
+        type: integer
+      xp_gained:
+        example: 100
+        type: integer
+    type: object
+  handlers.createItemRequest:
+    properties:
+      asset_id:
+        example: hat_001
+        type: string
+      category:
+        allOf:
+        - $ref: '#/definitions/models.ItemCategory'
+        example: COSMETIC
+      name:
+        example: Cool Hat
+        type: string
+      price_points:
+        example: 100
+        type: integer
+      rarity:
+        allOf:
+        - $ref: '#/definitions/models.ItemRarity'
+        example: RARE
+      slot:
+        allOf:
+        - $ref: '#/definitions/models.ItemSlot'
+        example: HEAD
+      unlock_level:
+        example: 5
+        type: integer
+    type: object
+  handlers.createPointlingRequest:
+    properties:
+      nickname:
+        example: MyPointling
+        type: string
+      user_id:
+        example: 123
+        type: integer
+    type: object
+  handlers.createUserRequest:
+    properties:
+      display_name:
+        example: JohnDoe
+        type: string
+      user_id:
+        example: 123
+        type: integer
+    type: object
+  handlers.spendPointsRequest:
+    properties:
+      item_id:
+        example: 123
+        type: integer
+      pointling_id:
+        example: 456
+        type: integer
+    type: object
+  handlers.toggleEquippedRequest:
+    properties:
+      equipped:
+        example: true
+        type: boolean
+    type: object
+  handlers.updateNicknameRequest:
+    properties:
+      nickname:
+        example: CoolPointling
+        type: string
+    type: object
+  handlers.updatePointsRequest:
+    properties:
+      new_balance:
+        example: 1000
+        minimum: 0
+        type: integer
+    type: object
+  models.Item:
+    properties:
+      asset_id:
+        type: string
+      category:
+        $ref: '#/definitions/models.ItemCategory'
+      item_id:
+        type: integer
+      name:
+        type: string
+      price_points:
+        type: integer
+      rarity:
+        $ref: '#/definitions/models.ItemRarity'
+      slot:
+        $ref: '#/definitions/models.ItemSlot'
+      unlock_level:
+        type: integer
+    type: object
+  models.ItemCategory:
+    enum:
+    - ACCESSORY
+    - FEATURE
+    type: string
+    x-enum-varnames:
+    - CategoryAccessory
+    - CategoryFeature
+  models.ItemRarity:
+    enum:
+    - COMMON
+    - RARE
+    - EPIC
+    - LEGENDARY
+    type: string
+    x-enum-varnames:
+    - RarityCommon
+    - RarityRare
+    - RarityEpic
+    - RarityLegendary
+  models.ItemSlot:
+    enum:
+    - HAT
+    - SHOES
+    - FACE
+    - WINGS
+    type: string
+    x-enum-varnames:
+    - SlotHat
+    - SlotShoes
+    - SlotFace
+    - SlotWings
+  models.JSONMap:
+    additionalProperties: true
+    type: object
+  models.PointSpend:
+    properties:
+      item:
+        allOf:
+        - $ref: '#/definitions/models.Item'
+        description: Joined data
+      item_id:
+        type: integer
+      points_spent:
+        type: integer
+      spend_id:
+        type: integer
+      spend_ts:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.Pointling:
+    properties:
+      created_at:
+        type: string
+      current_xp:
+        type: integer
+      level:
+        type: integer
+      look_json:
+        $ref: '#/definitions/models.JSONMap'
+      nickname:
+        type: string
+      personality_id:
+        type: integer
+      pointling_id:
+        type: integer
+      required_xp:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.TransactionSuccess:
+    properties:
+      item_id:
+        type: integer
+      new_balance:
+        type: integer
+      points_spent:
+        type: integer
+      previous_spend:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      point_balance:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.XPEvent:
+    properties:
+      event_id:
+        type: integer
+      event_ts:
+        type: string
+      pointling_id:
+        type: integer
+      source:
+        $ref: '#/definitions/models.XPEventSource'
+      xp_amount:
+        type: integer
+    type: object
+  models.XPEventSource:
+    enum:
+    - RECEIPT
+    - PLAY
+    - DAILY
+    type: string
+    x-enum-varnames:
+    - XPSourceReceipt
+    - XPSourcePlay
+    - XPSourceDaily
 host: localhost:8080
 info:
   contact: {}
   description: API for managing Pointlings, users, items, and XP system
   title: Pointlings API
   version: "1.0"
-paths: {}
+paths:
+  /items:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of items with optional filtering by category, rarity,
+        and slot
+      parameters:
+      - description: Filter by item category (e.g. COSMETIC, CONSUMABLE)
+        in: query
+        name: category
+        type: string
+      - description: Filter by item rarity (e.g. COMMON, RARE, EPIC)
+        in: query
+        name: rarity
+        type: string
+      - description: Filter by item slot (e.g. HEAD, BODY, ACCESSORY)
+        in: query
+        name: slot
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Item'
+            type: array
+        "400":
+          description: Invalid category/rarity/slot
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: List available items
+      tags:
+      - Items
+    post:
+      consumes:
+      - application/json
+      description: Create a new item in the catalog (admin only)
+      parameters:
+      - description: Item creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Invalid request body/parameters
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create a new item
+      tags:
+      - Items
+  /items/{item_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific item
+      parameters:
+      - description: Item ID
+        in: path
+        name: item_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Invalid item ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Item not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get item details
+      tags:
+      - Items
+  /pointlings:
+    post:
+      consumes:
+      - application/json
+      description: Create a new pointling for a user with optional nickname
+      parameters:
+      - description: Pointling creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPointlingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Pointling'
+        "400":
+          description: Invalid request body or missing user_id
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create a new pointling
+      tags:
+      - Pointlings
+  /pointlings/{pointling_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific pointling
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Pointling'
+        "400":
+          description: Invalid pointling ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Pointling not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get pointling details
+      tags:
+      - Pointlings
+  /pointlings/{pointling_id}/items:
+    get:
+      consumes:
+      - application/json
+      description: List all items owned by a pointling with optional equipped filter
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - description: Filter by equipped status
+        in: query
+        name: equipped
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Item'
+            type: array
+        "400":
+          description: Invalid pointling ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get pointling's inventory
+      tags:
+      - Items
+  /pointlings/{pointling_id}/items/{item_id}:
+    post:
+      consumes:
+      - application/json
+      description: Add an item to a pointling's inventory (requires meeting level
+        requirements)
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - description: Item ID
+        in: path
+        name: item_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Item'
+        "400":
+          description: Invalid pointling/item ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Level requirement not met
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Pointling/item not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Item already owned
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Acquire an item for a pointling
+      tags:
+      - Items
+  /pointlings/{pointling_id}/items/{item_id}/equip:
+    patch:
+      consumes:
+      - application/json
+      description: Equip or unequip an item for a pointling
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - description: Item ID
+        in: path
+        name: item_id
+        required: true
+        type: integer
+      - description: Toggle equipped request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.toggleEquippedRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid pointling/item ID or request body
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Pointling does not own this item
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Toggle item equipped status
+      tags:
+      - Items
+  /pointlings/{pointling_id}/nickname:
+    patch:
+      consumes:
+      - application/json
+      description: Update or remove a pointling's nickname
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - description: Nickname update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateNicknameRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid pointling ID or request body
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Pointling not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Update pointling nickname
+      tags:
+      - Pointlings
+  /pointlings/{pointling_id}/xp:
+    post:
+      consumes:
+      - application/json
+      description: Award experience points to a pointling from a specific source
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - description: XP addition request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.addXPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.addXPResponse'
+        "400":
+          description: Invalid pointling ID, request body, or XP amount
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Pointling not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "429":
+          description: Daily XP limit reached for this source
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Add XP to pointling
+      tags:
+      - XP
+  /pointlings/{pointling_id}/xp/history:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated history of XP gains for a pointling
+      parameters:
+      - description: Pointling ID
+        in: path
+        name: pointling_id
+        required: true
+        type: integer
+      - default: 50
+        description: Number of records to return (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.XPEvent'
+            type: array
+        "400":
+          description: Invalid pointling ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get XP history
+      tags:
+      - XP
+  /pointlings/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all pointlings owned by a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Pointling'
+            type: array
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: List user's pointlings
+      tags:
+      - Pointlings
+  /points/{userID}/history:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated history of a user's point spending transactions
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: 50
+        description: Number of records to return (max 100)
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of records to skip
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PointSpend'
+            type: array
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get point spending history
+      tags:
+      - Points
+  /points/{userID}/spend:
+    post:
+      consumes:
+      - application/json
+      description: Purchase an item for a pointling using user's points
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Points spending request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.spendPointsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TransactionSuccess'
+        "400":
+          description: Invalid user ID or request body
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "402":
+          description: Insufficient points
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Item not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Item already owned
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Spend points on an item
+      tags:
+      - Points
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all users
+      parameters:
+      - default: 50
+        description: Number of records to return (max 100)
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of records to skip
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: List all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with display name
+      parameters:
+      - description: User creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid request body or missing required fields
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - Users
+  /users/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get user details
+      tags:
+      - Users
+  /users/{user_id}/points:
+    patch:
+      consumes:
+      - application/json
+      description: Set a new point balance for a user (cannot be negative)
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Points update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updatePointsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid user ID, request body, or negative balance
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Update user's point balance
+      tags:
+      - Users
 produces:
 - application/json
 schemes:

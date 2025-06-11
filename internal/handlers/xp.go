@@ -22,6 +22,9 @@ func NewXPHandler(repo repository.API) *XPHandler {
 }
 
 // Routes sets up all the XP-related routes
+// @Summary Set up XP routes
+// @Description Initializes all XP-related API endpoints
+// @Tags XP
 func (h *XPHandler) Routes(rg *gin.RouterGroup) {
 	pointlings := rg.Group("/pointlings/:pointling_id")
 	{
@@ -30,21 +33,37 @@ func (h *XPHandler) Routes(rg *gin.RouterGroup) {
 	}
 }
 
+// addXPRequest represents the request body for adding XP
 type addXPRequest struct {
-	Source models.XPEventSource `json:"source"`
-	Amount int                  `json:"amount"`
+	Source models.XPEventSource `json:"source" example:"QUEST_COMPLETE" enums:"QUEST_COMPLETE,DAILY_LOGIN,ACHIEVEMENT"`
+	Amount int                  `json:"amount" example:"100" minimum:"1"`
 }
 
+// addXPResponse represents the response for a successful XP addition
 type addXPResponse struct {
-	XPGained    int             `json:"xp_gained"`
-	NewTotal    int             `json:"new_total"`
-	LeveledUp   bool            `json:"leveled_up"`
-	NewLevel    int             `json:"new_level,omitempty"`
-	RequiredXP  int             `json:"required_xp"`
-	PointlingID int64           `json:"pointling_id"`
+	XPGained    int             `json:"xp_gained" example:"100"`
+	NewTotal    int             `json:"new_total" example:"1250"`
+	LeveledUp   bool            `json:"leveled_up" example:"true"`
+	NewLevel    int             `json:"new_level,omitempty" example:"5"`
+	RequiredXP  int             `json:"required_xp" example:"2000"`
+	PointlingID int64           `json:"pointling_id" example:"123"`
 	Event       *models.XPEvent `json:"event"`
 }
 
+// AddXP godoc
+// @Summary Add XP to pointling
+// @Description Award experience points to a pointling from a specific source
+// @Tags XP
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param request body addXPRequest true "XP addition request"
+// @Success 200 {object} addXPResponse
+// @Failure 400 {object} ErrorResponse "Invalid pointling ID, request body, or XP amount"
+// @Failure 404 {object} ErrorResponse "Pointling not found"
+// @Failure 429 {object} ErrorResponse "Daily XP limit reached for this source"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/xp [post]
 func (h *XPHandler) AddXP(c *gin.Context) {
 	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {
@@ -143,6 +162,18 @@ func (h *XPHandler) AddXP(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetXPHistory godoc
+// @Summary Get XP history
+// @Description Get paginated history of XP gains for a pointling
+// @Tags XP
+// @Accept json
+// @Produce json
+// @Param pointling_id path int true "Pointling ID"
+// @Param limit query int false "Number of records to return (max 100)" default(50)
+// @Success 200 {array} models.XPEvent
+// @Failure 400 {object} ErrorResponse "Invalid pointling ID"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /pointlings/{pointling_id}/xp/history [get]
 func (h *XPHandler) GetXPHistory(c *gin.Context) {
 	pointlingID, err := strconv.ParseInt(c.Param("pointling_id"), 10, 64)
 	if err != nil {

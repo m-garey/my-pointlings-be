@@ -22,6 +22,10 @@ func NewPointHandler(
 	}
 }
 
+// Routes sets up all the point-related routes
+// @Summary Set up point routes
+// @Description Initializes all point-related API endpoints
+// @Tags Points
 func (h *PointHandler) Routes(rg *gin.RouterGroup) {
 	users := rg.Group("/points/:userID")
 	{
@@ -30,11 +34,27 @@ func (h *PointHandler) Routes(rg *gin.RouterGroup) {
 	}
 }
 
+// spendPointsRequest represents the request body for spending points
 type spendPointsRequest struct {
-	ItemID      int64 `json:"item_id"`
-	PointlingID int64 `json:"pointling_id"`
+	ItemID      int64 `json:"item_id" example:"123"`
+	PointlingID int64 `json:"pointling_id" example:"456"`
 }
 
+// spendPoints godoc
+// @Summary Spend points on an item
+// @Description Purchase an item for a pointling using user's points
+// @Tags Points
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param request body spendPointsRequest true "Points spending request"
+// @Success 200 {object} models.TransactionSuccess
+// @Failure 400 {object} ErrorResponse "Invalid user ID or request body"
+// @Failure 402 {object} ErrorResponse "Insufficient points"
+// @Failure 404 {object} ErrorResponse "Item not found"
+// @Failure 409 {object} ErrorResponse "Item already owned"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /points/{userID}/spend [post]
 func (h *PointHandler) spendPoints(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -106,6 +126,19 @@ func (h *PointHandler) spendPoints(c *gin.Context) {
 	RespondJSON(c.Writer, http.StatusOK, success)
 }
 
+// getSpendHistory godoc
+// @Summary Get point spending history
+// @Description Get paginated history of a user's point spending transactions
+// @Tags Points
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param limit query int false "Number of records to return (max 100)" default(50)
+// @Param offset query int false "Number of records to skip" minimum(0) default(0)
+// @Success 200 {array} models.PointSpend
+// @Failure 400 {object} ErrorResponse "Invalid user ID"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /points/{userID}/history [get]
 func (h *PointHandler) getSpendHistory(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("userID"), 10, 64)
 	if err != nil {
