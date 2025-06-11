@@ -39,7 +39,7 @@ func New(service service.API) *PointlingHandler {
 	return &PointlingHandler{service: service}
 }
 
-func (h *PointlingHandler) listUsers(c *gin.Context) {
+func (h *PointlingHandler) ListUsers(c *gin.Context) {
 	if _, err := h.service.ListUsers(c.Request.Context()); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -96,7 +96,7 @@ func (h *PointlingHandler) CreatePointling(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "createPointling"})
 }
 
-func (h *PointlingHandler) getPointling(c *gin.Context) {
+func (h *PointlingHandler) GetPointling(c *gin.Context) {
 	pointlingID := strings.TrimSpace(strings.ToUpper(strings.TrimPrefix(c.Param("pointling_id"), "/")))
 	pointling, serviceErr := h.service.GetPointling(c.Request.Context(), pointlingID)
 	if serviceErr != nil {
@@ -112,7 +112,7 @@ func (h *PointlingHandler) AddXP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	response, _, err := h.service.AddXP(c.Request.Context(), pointling)
+	response, err := h.service.AddXP(c.Request.Context(), pointling)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -153,7 +153,7 @@ func (h *PointlingHandler) ListUserPointlings(c *gin.Context) {
 	c.JSON(http.StatusOK, pointlings)
 }
 
-func (h *PointlingHandler) listItems(c *gin.Context) {
+func (h *PointlingHandler) ListItems(c *gin.Context) {
 	items, err := h.service.ListItems(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
