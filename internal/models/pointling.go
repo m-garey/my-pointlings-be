@@ -1,32 +1,8 @@
 package models
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
-// JSONMap is a type alias for JSON objects stored in the database
-type JSONMap map[string]interface{}
-
-// Scan implements sql.Scanner for JSONMap to handle JSONB columns
-func (m *JSONMap) Scan(value interface{}) error {
-	if value == nil {
-		*m = make(JSONMap)
-		return nil
-	}
-
-	switch v := value.(type) {
-	case []byte:
-		return json.Unmarshal(v, m)
-	case string:
-		return json.Unmarshal([]byte(v), m)
-	default:
-		*m = make(JSONMap)
-	}
-	return nil
-}
-
-// Pointling represents a user's virtual pet character
+// Pointling Models
 type Pointling struct {
 	PointlingID   int64     `json:"pointling_id" db:"pointling_id"`
 	UserID        int64     `json:"user_id" db:"user_id"`
@@ -39,20 +15,31 @@ type Pointling struct {
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
-// NewPointling creates a new Pointling with default values
+type CreatePointlingRequest struct {
+	UserID string `json:"user_id" binding:"required"`
+	Name   string `json:"name" binding:"required"`
+}
+
+type UpdateNicknameRequest struct {
+	PointlingID string `json:"pointling_id" binding:"required"`
+	Nickname    string `json:"nickname" binding:"required"`
+}
+
+type PointlingListResponse struct {
+	Pointlings []Pointling `json:"pointlings"`
+}
+
 func NewPointling(userID int64, nickname *string) *Pointling {
 	return &Pointling{
 		UserID:     userID,
 		Nickname:   nickname,
 		Level:      1,
 		CurrentXP:  0,
-		RequiredXP: 3, // Initial XP requirement
+		RequiredXP: 3,
 		LookJSON:   make(JSONMap),
 	}
 }
 
-// CalculateNextLevelXP returns the XP required for the next level
-// XP grows linearly from 3 to 120
 func CalculateNextLevelXP(currentLevel int) int {
 	baseXP := 3
 	xpPerLevel := 3

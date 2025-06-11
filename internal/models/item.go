@@ -1,12 +1,13 @@
 package models
 
-import (
-	"errors"
-	"time"
-)
+import "time"
+
+// Item Models
 
 type ItemCategory string
+
 type ItemSlot string
+
 type ItemRarity string
 
 const (
@@ -24,13 +25,6 @@ const (
 	RarityLegendary ItemRarity = "LEGENDARY"
 )
 
-var (
-	ErrInsufficientPoints = errors.New("insufficient points to purchase item")
-	ErrLevelTooLow        = errors.New("level requirement not met")
-	ErrAlreadyOwned       = errors.New("item already owned")
-)
-
-// Item represents a purchasable or unlockable item
 type Item struct {
 	ItemID      int64        `json:"item_id" db:"item_id"`
 	Category    ItemCategory `json:"category" db:"category"`
@@ -42,57 +36,37 @@ type Item struct {
 	UnlockLevel *int         `json:"unlock_level,omitempty" db:"unlock_level"`
 }
 
-// PointlingItem represents an item owned by a pointling
 type PointlingItem struct {
 	PointlingID int64     `json:"pointling_id" db:"pointling_id"`
 	ItemID      int64     `json:"item_id" db:"item_id"`
 	AcquiredAt  time.Time `json:"acquired_at" db:"acquired_at"`
 	Equipped    bool      `json:"equipped" db:"equipped"`
-	Item        *Item     `json:"item,omitempty" db:"-"` // Joined data
+	Item        *Item     `json:"item,omitempty" db:"-"`
 }
 
-// ValidateCategory checks if the category is valid
-func (c ItemCategory) ValidateCategory() bool {
-	switch c {
-	case CategoryAccessory, CategoryFeature:
-		return true
-	default:
-		return false
-	}
+type CreateItemRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Cost     int    `json:"cost" binding:"required"`
+	Category string `json:"category" binding:"required"`
+	Rarity   string `json:"rarity"`
+	AssetID  string `json:"asset_id" binding:"required"`
 }
 
-// ValidateSlot checks if the slot is valid
-func (s ItemSlot) ValidateSlot() bool {
-	switch s {
-	case SlotHat, SlotShoes, SlotFace, SlotWings:
-		return true
-	default:
-		return false
-	}
+type AcquireItemRequest struct {
+	PointlingID string `json:"pointling_id" binding:"required"`
+	ItemID      string `json:"item_id" binding:"required"`
 }
 
-// ValidateRarity checks if the rarity is valid
-func (r ItemRarity) ValidateRarity() bool {
-	switch r {
-	case RarityCommon, RarityRare, RarityEpic, RarityLegendary:
-		return true
-	default:
-		return false
-	}
+type ToggleEquippedRequest struct {
+	PointlingID string `json:"pointling_id" binding:"required"`
+	ItemID      string `json:"item_id" binding:"required"`
+	Equipped    bool   `json:"equipped" binding:"required"`
 }
 
-// GetRarityValue returns a numeric value for sorting by rarity
-func (r ItemRarity) GetRarityValue() int {
-	switch r {
-	case RarityCommon:
-		return 1
-	case RarityRare:
-		return 2
-	case RarityEpic:
-		return 3
-	case RarityLegendary:
-		return 4
-	default:
-		return 0
-	}
+type ItemListResponse struct {
+	Items []Item `json:"items"`
+}
+
+type InventoryResponse struct {
+	Items []Item `json:"items"`
 }
