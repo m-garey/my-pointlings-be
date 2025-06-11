@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"my-pointlings-be/internal/models"
+	model "my-pointlings-be/internal/models"
 	"my-pointlings-be/internal/repository"
-	model "my-pointlings-be/internal/service/model"
 )
 
 type PointlingService struct {
@@ -21,7 +21,7 @@ type API interface {
 	UpdateUserPoints(c context.Context, update model.UpdateUserPointsRequest) (model.SuccessResponse, error)
 	CreatePointling(c context.Context, req model.CreatePointlingRequest) (model.SuccessResponse, error)
 	GetPointling(c context.Context, pointlingID string) (model.Pointling, error)
-	AddXP(c context.Context, req model.XPUpdateRequest) (model.XPUpdateResponse, error)
+	AddXP(c context.Context, req model.AddXPRequest) (model.XPUpdateResponse, error)
 	UpdateNickname(c context.Context, req model.UpdateNicknameRequest) (model.SuccessResponse, error)
 	ListUserPointlings(c context.Context, userID string) (model.PointlingListResponse, error)
 	ListItems(c context.Context) (model.ItemListResponse, error)
@@ -119,7 +119,7 @@ func (s *PointlingService) GetPointling(c context.Context, pointlingID string) (
 	}, nil
 }
 
-func (s *PointlingService) AddXP(c context.Context, req model.XPUpdateRequest) (model.XPUpdateResponse, model.LevelUpOptionsResponse, error) {
+func (s *PointlingService) AddXP(c context.Context, req model.AddXPRequest) (model.XPUpdateResponse, error) {
 	return model.XPUpdateResponse{
 			LeveledUp:  true,
 			NewLevel:   2,
@@ -216,7 +216,7 @@ func (s *PointlingService) CreateItem(c context.Context, item model.CreateItemRe
 	return model.SuccessResponse{Success: true}, nil
 }
 
-func (s *PointlingService) GetInventory(c context.Context, pointlingID string) model.InventoryResponse {
+func (s *PointlingService) GetInventory(c context.Context, pointlingID string) (model.InventoryResponse, error) {
 	id := parseID(pointlingID)
 	items, _ := s.PointlingRepo.GetItems(id, nil)
 	var res model.InventoryResponse

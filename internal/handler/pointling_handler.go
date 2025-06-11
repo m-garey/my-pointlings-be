@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	pointling_model "my-pointlings-be/internal/handler/model"
+	models "my-pointlings-be/internal/models"
 	"my-pointlings-be/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +46,7 @@ func (h *PointlingHandler) ListUsers(c *gin.Context) {
 }
 
 func (h *PointlingHandler) CreateUser(c *gin.Context) {
-	var user pointling_model.CreateUserRequest
+	var user models.CreateUserRequest
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -69,7 +69,7 @@ func (h *PointlingHandler) GetUser(c *gin.Context) {
 }
 
 func (h *PointlingHandler) UpdateUserPoints(c *gin.Context) {
-	var pointling pointling_model.UpdateUserPointsRequest
+	var pointling models.UpdateUserPointsRequest
 	if err := c.ShouldBindJSON(&pointling); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -82,7 +82,7 @@ func (h *PointlingHandler) UpdateUserPoints(c *gin.Context) {
 }
 
 func (h *PointlingHandler) CreatePointling(c *gin.Context) {
-	var pointling pointling_model.CreatePointlingRequest
+	var pointling models.CreatePointlingRequest
 	if err := c.ShouldBindJSON(&pointling); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -105,7 +105,7 @@ func (h *PointlingHandler) GetPointling(c *gin.Context) {
 }
 
 func (h *PointlingHandler) AddXP(c *gin.Context) {
-	var pointling pointling_model.AddXPRequest
+	var pointling models.AddXPRequest
 	if err := c.ShouldBindJSON(&pointling); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -119,7 +119,7 @@ func (h *PointlingHandler) AddXP(c *gin.Context) {
 }
 
 func (h *PointlingHandler) UpdateNickname(c *gin.Context) {
-	var pointling pointling_model.UpdateNicknameRequest
+	var pointling models.UpdateNicknameRequest
 	if err := c.ShouldBindJSON(&pointling); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -161,7 +161,7 @@ func (h *PointlingHandler) GetItem(c *gin.Context) {
 }
 
 func (h *PointlingHandler) CreateItem(c *gin.Context) {
-	var item pointling_model.CreateItemRequest
+	var item models.CreateItemRequest
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -184,7 +184,7 @@ func (h *PointlingHandler) GetInventory(c *gin.Context) {
 }
 
 func (h *PointlingHandler) AcquireItem(c *gin.Context) {
-	var item pointling_model.AcquireItemRequest
+	var item models.AcquireItemRequest
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -197,7 +197,7 @@ func (h *PointlingHandler) AcquireItem(c *gin.Context) {
 }
 
 func (h *PointlingHandler) ToggleEquipped(c *gin.Context) {
-	var item pointling_model.ToggleEquippedRequest
+	var item models.ToggleEquippedRequest
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -210,7 +210,7 @@ func (h *PointlingHandler) ToggleEquipped(c *gin.Context) {
 }
 
 func (h *PointlingHandler) SpendPoints(c *gin.Context) {
-	var item pointling_model.SpendPointsRequest
+	var item models.SpendPointsRequest
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

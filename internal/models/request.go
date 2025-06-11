@@ -1,8 +1,4 @@
-package pointling_model
-
-// Structures to bind requests for Pointlings API endpoints
-
-// USERS
+package models
 
 // POST /users
 // CreateUserRequest holds data to create a user
@@ -13,35 +9,16 @@ type CreateUserRequest struct {
 	PointAmount int    `json:"point_amount" binding:"required"`
 }
 
-type User struct {
-	UserID      string `json:"user_id"`
-	UserName    string `json:"user_name"`
-	PointlingID string `json:"pointling_id"`
-	PointAmount int    `json:"point_amount"`
+// POST /pointlings
+// CreatePointlingRequest holds data to create a pointling
+type CreatePointlingRequest struct {
+	PointlingName string `json:"pointling_name" binding:"required"`
 }
 
 // PATCH /users/:user_id/points
 // UpdateUserPointsRequest holds data to update user points
 type UpdateUserPointsRequest struct {
 	PointAmount int `json:"point_amount" binding:"required"`
-}
-
-// POINTLINGS
-
-type Pointling struct {
-	PointlingID  string `json:"pointling_id"`
-	Name         string `json:"pointling_name"`
-	CurrentXP    int    `json:"current_xp"`
-	RequiredXP   int    `json:"required_xp"`
-	Level        int    `json:"current_level"`
-	AppearanceID string `json:"appearance_id"`
-	WardrobeID   string `json:"wardrobe_id"`
-}
-
-// POST /pointlings
-// CreatePointlingRequest holds data to create a pointling
-type CreatePointlingRequest struct {
-	PointlingName string `json:"pointling_name" binding:"required"`
 }
 
 // POST /pointlings/:pointling_id/xp
@@ -55,21 +32,6 @@ type AddXPRequest struct {
 type UpdateNicknameRequest struct {
 	Nickname string `json:"nickname" binding:"required"`
 }
-
-// ITEMS
-
-// POST /items
-// CreateItemRequest holds data to create an item
-// (Assuming structure based on accessories and items)
-type CreateItemRequest struct {
-	Name    string `json:"name" binding:"required"`
-	Cost    int    `json:"cost" binding:"required"`
-	Type    string `json:"type" binding:"required"`
-	Rarity  string `json:"rarity"`
-	AssetID string `json:"asset_id" binding:"required"`
-}
-
-// POINTLING INVENTORY
 
 // POST /pointlings/:pointling_id/items/:item_id
 // AcquireItemRequest holds optional metadata if needed for acquisition
@@ -89,4 +51,15 @@ type ToggleEquippedRequest struct {
 type SpendPointsRequest struct {
 	Amount int    `json:"amount" binding:"required"`
 	Reason string `json:"reason"`
+}
+
+// POST /items
+// CreateItemRequest holds data to create an item
+// (Assuming structure based on accessories and items)
+type CreateItemRequest struct {
+	Name    string `json:"name" binding:"required"`
+	Cost    int    `json:"cost" binding:"required"`
+	Type    string `json:"type" binding:"required"`
+	Rarity  string `json:"rarity"`
+	AssetID string `json:"asset_id" binding:"required"`
 }
