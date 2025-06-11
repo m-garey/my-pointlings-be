@@ -96,7 +96,7 @@ POST /api/v1/items/purchase
 ## Project Structure
 
 ```
-/cmd/server          - Entry point
+/cmd/api            - Entry point
 /internal
   /models           - Domain models
   /repository       - Data access layer

@@ -12,9 +12,15 @@ import (
 	"syscall"
 	"time"
 
+<<<<<<< HEAD
 	"my-pointlings-be/internal/handler"
 	"my-pointlings-be/internal/repository"
 	"my-pointlings-be/internal/service"
+=======
+	"my-pointlings-be/internal/handler/pointling_handler"
+	"my-pointlings-be/internal/repository/pointling_repo"
+	"my-pointlings-be/internal/service/pointling_service"
+>>>>>>> b5512fa (sl;dkfjasl;dkfjas;d)
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -105,31 +111,31 @@ func setupPointlingRouter(
 	api := r.Group("/api")
 	{
 		// User endpoints
-		api.GET("/users", pointlingHandler.listUsers)
-		api.POST("/users", pointlingHandler.createUser)
-		api.GET("/users/:user_id", pointlingHandler.getUser)
-		api.PATCH("/users/:user_id/points", pointlingHandler.updateUserPoints)
+		api.GET("/users", pointlingHandler.ListUsers)
+		api.POST("/users", pointlingHandler.CreateUser)
+		api.GET("/users/:user_id", pointlingHandler.GetUser)
+		api.PATCH("/users/:user_id/points", pointlingHandler.UpdateUserPoints)
 
 		// Pointlings endpoints
-		api.POST("/pointlings", pointlingHandler.createPointling)
-		api.GET("/pointlings/:pointling_id", pointlingHandler.getPointling)
-		api.POST("/pointlings/:pointling_id/xp", pointlingHandler.addXP)
-		api.GET("/pointlings/:pointling_id/xp/history", pointlingHandler.getXPHistory)
-		api.PATCH("/pointlings/:pointling_id/nickname", pointlingHandler.updateNickname)
-		api.GET("/pointlings/user/:user_id", pointlingHandler.listUserPointlings)
+		api.POST("/pointlings", pointlingHandler.CreatePointling)
+		api.GET("/pointlings/:pointling_id", pointlingHandler.GetPointling)
+		api.POST("/pointlings/:pointling_id/xp", pointlingHandler.AddXP)
+		api.GET("/pointlings/:pointling_id/xp/history", pointlingHandler.GetXPHistory)
+		api.PATCH("/pointlings/:pointling_id/nickname", pointlingHandler.UpdateNickname)
+		api.GET("/pointlings/user/:user_id", pointlingHandler.ListUserPointlings)
 
 		// Items endpoints
-		api.GET("/items", pointlingHandler.listItems)
-		api.GET("/items/:item_id", pointlingHandler.getItem)
-		api.POST("/items", pointlingHandler.createItem)
+		api.GET("/items", pointlingHandler.ListItems)
+		api.GET("/items/:item_id", pointlingHandler.GetItem)
+		api.POST("/items", pointlingHandler.CreateItem)
 
 		// Pointling inventory endpoints
-		api.GET("/pointlings/:pointling_id/items", pointlingHandler.getInventory)
-		api.POST("/pointlings/:pointling_id/items/:item_id", pointlingHandler.acquireItem)
-		api.PATCH("/pointlings/:pointling_id/items/:item_id/equip", pointlingHandler.toggleEquipped)
+		api.GET("/pointlings/:pointling_id/items", pointlingHandler.GetInventory)
+		api.POST("/pointlings/:pointling_id/items/:item_id", pointlingHandler.AcquireItem)
+		api.PATCH("/pointlings/:pointling_id/items/:item_id/equip", pointlingHandler.ToggleEquipped)
 
 		// Points spending
-		api.POST("/users/:user_id/points/spend", pointlingHandler.spendPoints)
-		api.GET("/users/:user_id/points/history", pointlingHandler.getSpendHistory)
+		api.POST("/users/:user_id/points/spend", pointlingHandler.SpendPoints)
+		api.GET("/users/:user_id/points/history", pointlingHandler.GetSpendHistory)
 	}
 }

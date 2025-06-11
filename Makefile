@@ -1,7 +1,7 @@
 .PHONY: run test lint docker-build
 
 run:
-	go run ./cmd/server
+	go run ./cmd/api
 
 test:
 	go test -v -race -cover ./...
