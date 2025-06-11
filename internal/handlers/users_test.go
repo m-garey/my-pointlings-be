@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/pointlings/backend/internal/models"
+	"my-pointlings-be/internal/models"
 )
 
 // MockUserRepository is a mock implementation of models.UserRepository

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/pointlings/backend/internal/models"
+	"my-pointlings-be/internal/models"
 )
 
 type PointlingRepository struct {

@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"my-pointlings-be/internal/models"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/pointlings/backend/internal/models"
 )
 
 type PointlingHandler struct {

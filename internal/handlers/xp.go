@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"my-pointlings-be/internal/models"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/pointlings/backend/internal/models"
 )
 
 type XPHandler struct {
@@ -127,7 +128,6 @@ func (h *XPHandler) addXP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		return nil
 		return nil
 	})
 

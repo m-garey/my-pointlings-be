@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"my-pointlings-be/internal/models"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/pointlings/backend/internal/models"
 )
 
 type PointHandler struct {

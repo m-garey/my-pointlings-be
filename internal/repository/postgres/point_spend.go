@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/pointlings/backend/internal/models"
+	"my-pointlings-be/internal/models"
 )
 
 type PointSpendRepository struct {

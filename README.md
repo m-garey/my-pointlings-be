@@ -1,6 +1,15 @@
-# Pointlings Backend Service
+# myPointlings
+
+> Team 206: Mari Garey (team lead), Sam Nesler, Jiamu Chai
 
 Backend service for the MyPointling project - a gamified feature within the Fetch app allowing users to interact with and customize their own Pointling creatures.
+
+## Motivation
+
+- Add customization/personalization for each user
+- Positive retention motivator
+- Pointlings are cute!
+- Incentive for app interaction without needing extra effort!
 
 ## Features
 
@@ -9,6 +18,19 @@ Backend service for the MyPointling project - a gamified feature within the Fetc
 - Item/accessory system with rarity levels
 - XP-based leveling system
 - Integration with Supabase for data persistence
+
+### Interaction
+
+How to take care of a user's Pointling:
+
+1. "Feeding" the Pointling by scanning receipts
+2. "Playing" with the Pointling by completing milestones through Fetch Play
+
+Once a user scans a certain combined # of receipts or milestones completed, the Pointling can level up and unlock new customization
+
+### Customization
+
+# Pointlings Backend Service
 
 ## API Endpoints
 
@@ -35,7 +57,7 @@ PATCH /api/v1/users/{userID}/points
 - Response: 204 No Content or 404 Not Found
 ```
 
-### Pointlings (To Be Implemented)
+### Pointlings
 
 ```
 POST /api/v1/pointlings
@@ -59,7 +81,7 @@ POST /api/v1/pointlings/{pointlingID}/items/{itemID}/equip
 - Body: {"equipped": boolean}
 ```
 
-### Items/Shop (To Be Implemented)
+### Items/Shop
 
 ```
 GET /api/v1/items
@@ -115,12 +137,6 @@ The project uses table-driven tests with mocked dependencies. Run tests with:
 ```bash
 make test
 ```
-
-Coverage requirements:
-
-- Handlers: 90%+
-- Repositories: 90%+
-- Models: 80%+
 
 ## Docker
 

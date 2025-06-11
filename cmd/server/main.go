@@ -14,9 +14,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/pointlings/backend/internal/handlers"
-	"github.com/pointlings/backend/internal/repository/postgres"
-	"github.com/pointlings/backend/pkg/config"
+	"my-pointlings-be/internal/handlers"
+	"my-pointlings-be/internal/repository/postgres"
+	"my-pointlings-be/pkg/config"
 )
 
 func main() {
