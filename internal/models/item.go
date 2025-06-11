@@ -51,39 +51,6 @@ type PointlingItem struct {
 	Item        *Item     `json:"item,omitempty" db:"-"` // Joined data
 }
 
-// ItemRepository defines the interface for item data access
-type ItemRepository interface {
-	// GetByID retrieves an item by its ID
-	GetByID(id int64) (*Item, error)
-
-	// List retrieves items with optional filters
-	List(category *ItemCategory, rarity *ItemRarity, slot *ItemSlot) ([]*Item, error)
-
-	// GetUnlocksForLevel gets items available at a specific level
-	GetUnlocksForLevel(level int) ([]*Item, error)
-
-	// Create creates a new item (admin only)
-	Create(item *Item) error
-}
-
-// PointlingItemRepository defines the interface for pointling-item relationship
-type PointlingItemRepository interface {
-	// AddItem gives an item to a pointling
-	AddItem(pointlingID, itemID int64) error
-
-	// GetItems lists items owned by a pointling
-	GetItems(pointlingID int64, equipped *bool) ([]*PointlingItem, error)
-
-	// ToggleEquipped equips or unequips an item
-	ToggleEquipped(pointlingID, itemID int64, equipped bool) error
-
-	// GetEquippedInSlot gets the currently equipped item in a slot
-	GetEquippedInSlot(pointlingID int64, slot ItemSlot) (*PointlingItem, error)
-
-	// InTransaction executes operations in a transaction
-	InTransaction(fn func(PointlingItemRepository) error) error
-}
-
 // ValidateCategory checks if the category is valid
 func (c ItemCategory) ValidateCategory() bool {
 	switch c {

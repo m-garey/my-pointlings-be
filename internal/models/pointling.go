@@ -39,30 +39,6 @@ type Pointling struct {
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
-// PointlingRepository defines the interface for pointling data access
-type PointlingRepository interface {
-	// Create stores a new pointling
-	Create(pointling *Pointling) error
-
-	// GetByID retrieves a pointling by its ID
-	GetByID(id int64) (*Pointling, error)
-
-	// GetByUserID retrieves all pointlings owned by a user
-	GetByUserID(userID int64) ([]*Pointling, error)
-
-	// UpdateLook updates a pointling's appearance
-	UpdateLook(id int64, look JSONMap) error
-
-	// UpdateXP updates a pointling's XP and required XP values
-	UpdateXP(id int64, currentXP, requiredXP int) error
-
-	// UpdateLevel updates a pointling's level
-	UpdateLevel(id int64, level int) error
-
-	// UpdateNickname sets a pointling's nickname
-	UpdateNickname(id int64, nickname *string) error
-}
-
 // NewPointling creates a new Pointling with default values
 func NewPointling(userID int64, nickname *string) *Pointling {
 	return &Pointling{

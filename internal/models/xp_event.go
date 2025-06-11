@@ -33,21 +33,6 @@ type XPEvent struct {
 	EventTS     time.Time     `json:"event_ts" db:"event_ts"`
 }
 
-// XPRepository defines the interface for XP event data access
-type XPRepository interface {
-	// AddXP creates a new XP event and updates the pointling's XP
-	AddXP(event *XPEvent) error
-
-	// GetEventsByPointling retrieves recent XP events for a pointling
-	GetEventsByPointling(pointlingID int64, limit int) ([]*XPEvent, error)
-
-	// GetDailyXPBySource gets total XP gained from a source today
-	GetDailyXPBySource(pointlingID int64, source XPEventSource) (int, error)
-
-	// InTransaction executes the given function within a database transaction
-	InTransaction(fn func(XPRepository) error) error
-}
-
 // ValidateSource checks if the XP source is valid
 func (s XPEventSource) ValidateSource() bool {
 	switch s {

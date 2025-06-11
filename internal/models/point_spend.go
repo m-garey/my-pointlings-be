@@ -19,24 +19,6 @@ type PointSpend struct {
 	Item        *Item     `json:"item,omitempty" db:"-"` // Joined data
 }
 
-// PointSpendRepository defines the interface for point spending records
-type PointSpendRepository interface {
-	// Create records a new point spend transaction
-	Create(spend *PointSpend) error
-
-	// GetByUser retrieves spending history for a user
-	GetByUser(userID int64, limit, offset int) ([]*PointSpend, error)
-
-	// GetTotalSpentByUser gets total points spent by a user
-	GetTotalSpentByUser(userID int64) (int64, error)
-
-	// InTransaction executes operations in a transaction
-	InTransaction(fn func(PointSpendRepository) error) error
-
-	// SpendPoints atomically updates user balance and creates spend record
-	SpendPoints(userID int64, itemID int64, points int) error
-}
-
 // TransactionSuccess represents a successful point transaction
 type TransactionSuccess struct {
 	ItemID        int64 `json:"item_id"`
