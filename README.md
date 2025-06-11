@@ -129,6 +129,7 @@ POST /api/v1/items/purchase
 - Test: `make test`
 - Lint: `make lint`
 - Docker build: `make docker-build`
+- Swagger Docs: `make docs`
 
 ## Testing
 

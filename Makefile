@@ -17,3 +17,10 @@ lint:
 
 docker-build:
 	docker build -t pointlings-backend .
+
+docs:
+	swag init
+
+mock:
+	brew install mockery
+	mockery	--all
