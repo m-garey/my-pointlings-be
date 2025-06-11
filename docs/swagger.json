@@ -7,6 +7,7 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
+<<<<<<< HEAD
     "basePath": "/api/v1",
     "paths": {
         "/users": {
@@ -127,4 +128,8 @@
             }
         }
     }
+=======
+    "basePath": "/",
+    "paths": {}
+>>>>>>> 64a676e (updates)
 }

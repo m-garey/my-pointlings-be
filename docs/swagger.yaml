@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 basePath: /api/v1
 definitions:
   handlers.ErrorResponse:
@@ -16,12 +17,16 @@ definitions:
       user_id:
         type: integer
     type: object
+=======
+basePath: /
+>>>>>>> 64a676e (updates)
 host: localhost:8080
 info:
   contact: {}
   description: This is a sample server for Pointlings MVP.
   title: Pointlings API
   version: "1.0"
+<<<<<<< HEAD
 paths:
   /users:
     post:
@@ -82,4 +87,7 @@ paths:
       summary: Get user by ID
       tags:
       - users
+=======
+paths: {}
+>>>>>>> 64a676e (updates)
 swagger: "2.0"

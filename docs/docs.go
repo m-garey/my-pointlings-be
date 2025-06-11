@@ -14,6 +14,7 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
+<<<<<<< HEAD
     "paths": {
         "/users": {
             "post": {
@@ -133,13 +134,20 @@ const docTemplate = `{
             }
         }
     }
+=======
+    "paths": {}
+>>>>>>> 64a676e (updates)
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
+<<<<<<< HEAD
 	BasePath:         "/api/v1",
+=======
+	BasePath:         "/",
+>>>>>>> 64a676e (updates)
 	Schemes:          []string{},
 	Title:            "Pointlings API",
 	Description:      "This is a sample server for Pointlings MVP.",
